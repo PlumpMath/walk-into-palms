@@ -12,7 +12,6 @@ export function createPath(radius, radius_offset){
         //console.log(noise);
         let smoothed_offset = smoothLastPoints(radius_offset, angle, complete_round);
         let offset = map(noise, 0 ,1 , -smoothed_offset, smoothed_offset);
-        console.log(offset);
         let r = radius + offset;
         let x = r * Math.cos(angle);
         let z = r * Math.sin(angle);

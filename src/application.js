@@ -1,10 +1,12 @@
 /* eslint-env browser */
 import * as THREE from 'three';
-import {Perlin} from './perlin.js';
 import Gui from './gui.js';
 import Stats from 'stats.js';
 import CollectionGeometries from './geometries.js';
 import CollectionMaterials from './materials.js';
+import {createPath} from './path.js';
+import Scenography from './scenography.js';
+import Pool from './pool.js';
 
 const gui = new Gui();
 const debug = true;
@@ -26,14 +28,13 @@ var cameraSpeed = cameraSpeedDefault;
 var jumpFrequency = 0.0009; // how often is the camera jumping
 var cameraZposition = 100;
 var curveDensity = 600; // how many points define the path
-var cameraHeight = 15; // how high is the camera on the y axis
+var cameraHeight = 0; // how high is the camera on the y axis
 
 //curve
-let spline;
 let t = 0;
 const radius = 200;
-const radius_offset = 100;
-
+const radius_offset = 60;
+let spline = createPath(radius, radius_offset);
 // stats
 const stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -43,6 +44,8 @@ const materials = new CollectionMaterials;
 const geometries = new CollectionGeometries;
 var objects = [];
 var group = new THREE.Group();
+
+let scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed);
 
 //lights
 let ambientLight = new THREE.AmbientLight( 0x000000 );
@@ -65,6 +68,15 @@ scene.add( lights[ 2 ] );
 var axisHelper = new THREE.AxisHelper( 50 );
 scene.add( axisHelper );
 
+// objects
+const poolSize = 12;
+const percent_covered = 0.2; // it means that objects will be placed only in the
+// 20% part of the curve in front of the camera. It has to be tuned with the fog
+const distance_from_path = 10;
+let pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, materials["phong"]);
+
+
+
 window.addEventListener('resize', function() {
     var WIDTH = window.innerWidth,
     HEIGHT = window.innerHeight;
@@ -74,46 +86,10 @@ window.addEventListener('resize', function() {
 });
 
 addStats(debug);
-spline = createPath();
 addPathToScene(scene, spline);
 render();
 
 
-function createPath(){
-    //Create a closed wavey loop
-    let complete_round = Math.PI * 2;
-    let definition = 0.05; //the smaller, the higher the definition of the curve
-    let vertices = [];
-    let perlin = new Perlin(Math.random());
-    let x_offset = 0;
-    for (let angle = 0; angle <= complete_round; angle+= definition){
-        let noise = perlin.noise(x_offset, 0, 0);
-        //console.log(noise);
-        let smoothed_offset = smoothLastPoints(radius_offset, angle, complete_round);
-        let offset = map(noise, 0 ,1 , -smoothed_offset, smoothed_offset);
-        console.log(offset);
-        let r = radius + offset;
-        let x = r * Math.cos(angle);
-        let z = r * Math.sin(angle);
-        let v = new THREE.Vector3(x,0, z);
-        vertices.push(v);
-        x_offset += 0.1;
-    }
-    let curve = new THREE.CatmullRomCurve3(vertices);
-    curve.closed = true;
-    return curve;
-}
-
-function smoothLastPoints(offset, angle, round){
-    // this function is to close the circle in a more uniform way
-    let arc_to_smooth =round * 0.92;
-    if(angle >= arc_to_smooth){
-        let smoothed = map(angle,arc_to_smooth, round, radius_offset, 0);
-        return smoothed;
-    }else{
-        return offset;
-    }
-}
 
 function addPathToScene(scene, curve){
     let geometry = new THREE.Geometry();
@@ -131,20 +107,11 @@ function addStats(debug) {
     }
 }
 
-function map(val, in_min, in_max, out_min, out_max) {
-    return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-};
-
 
 function moveCamera(spline) {
     var camPos = spline.getPoint(t);
     var yPos;
-    if (false) {
-        var sinYpos = Math.sin(new Date().getTime() * jumpFrequency) * cameraHeight;
-        yPos = sinYpos.map(-cameraHeight, cameraHeight, cameraHeight, (cameraHeight * 1.2));
-    } else {
-        yPos = cameraHeight;
-    }
+    yPos = cameraHeight;
     camera.position.set(camPos.x, yPos, camPos.z);
 
     // the lookAt position is just 20 points ahead the current position
@@ -163,7 +130,8 @@ function moveCamera(spline) {
 
 function render(){
     stats.begin();
-    //moveCamera(spline);
+    scenography.update(1);
+    pool.update(scenography.getCameraPositionOnSpline);
 	  renderer.render(scene, camera);
     stats.end();
 	  requestAnimationFrame(render);

@@ -28,13 +28,13 @@ var cameraSpeed = cameraSpeedDefault;
 var jumpFrequency = 0.0009; // how often is the camera jumping
 var cameraZposition = 100;
 var curveDensity = 600; // how many points define the path
-var cameraHeight = 0; // how high is the camera on the y axis
+var cameraHeight = 30; // how high is the camera on the y axis
 
 //curve
 let t = 0;
 const radius = 200;
 const radius_offset = 150;
-let spline = createPath(radius, radius_offset, 0.05);
+let spline = createPath(radius, radius_offset);
 // stats
 const stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -46,8 +46,8 @@ var objects = [];
 var group = new THREE.Group();
 
 let fakeCamera = new THREE.Mesh(new THREE.BoxGeometry(30,30,30), materials["lambert"]);
-scene.add(fakeCamera);
-let scenography = new Scenography(fakeCamera, spline, t, cameraHeight, cameraSpeed);
+//scene.add(fakeCamera);
+let scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed);
 
 //lights
 let ambientLight = new THREE.AmbientLight( 0x000000 );

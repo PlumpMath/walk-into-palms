@@ -1,4 +1,5 @@
 import {BoxBufferGeometry, Mesh, Vector3} from 'three';
+import Palm from './palm.js';
 export default class Pool {
     constructor(size, scene, curve, percent_covered, distance_from_path, material){
         this.scene = scene;
@@ -9,6 +10,7 @@ export default class Pool {
         this.percent_covered = percent_covered;
         this.distance_from_path = distance_from_path;
         this.step = this.percent_covered / this.size;
+        this.material = material;
 
         this.populatePool();
     }
@@ -50,8 +52,9 @@ export default class Pool {
     }
 
     createObject(){
-        let box = new BoxBufferGeometry(10,10,10);
-        let mesh = new Mesh(box, this.material);
+        //let box = new BoxBufferGeometry(10,10,10);
+        let geometry = new Palm().geometry;
+        let mesh = new Mesh(geometry, this.material);
         return mesh;
     }
 
@@ -66,8 +69,6 @@ export default class Pool {
             if (object_position < camera_position_on_spline) {
                 // this condition handles the case when you are at postion 9.5 in the curve
                 //and you have still to be able to see the palms in position 0.1
-
-                console.log(flip_direction);
                 if (horizon >= 1.0){
                     horizon = horizon - 1.0;
                     if (object_position > horizon){
@@ -103,14 +104,10 @@ export default class Pool {
 
         if (flip_direction) {
             new_pos = point.add(secantVector);
-            console.log("Y");
         } else {
             new_pos = point.sub(secantVector);
-            console.log("N");
         }
         object.position.set(new_pos.x, new_pos.y, new_pos.z);
-        object.updateMatrix();
-        //object.applyMatrix(new Matrix4().makeTranslation(new_pos.x, new_pos.y, new_pos.z));
 
     }
 }

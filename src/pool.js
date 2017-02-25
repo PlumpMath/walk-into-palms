@@ -1,4 +1,4 @@
-import {BoxBufferGeometry, Mesh, Vector3} from 'three';
+import {BoxBufferGeometry, Mesh, Vector3, BufferAttribute, BufferGeometry} from 'three';
 import Palm from './palm.js';
 export default class Pool {
     constructor(size, scene, curve, percent_covered, distance_from_path, material){
@@ -53,8 +53,14 @@ export default class Pool {
 
     createObject(){
         //let box = new BoxBufferGeometry(10,10,10);
-        let geometry = new Palm().geometry;
-        let mesh = new Mesh(geometry, this.material);
+        let palm = new Palm();
+        let geometry = palm.geometry;
+        let bufGeometry = new BufferGeometry().fromGeometry(geometry);
+        let palmBuffers = palm.buffers;
+        bufGeometry.addAttribute( 'angle', new BufferAttribute(
+            palmBuffers.angle,
+            1));
+        let mesh = new Mesh(bufGeometry, this.material);
         return mesh;
     }
 

@@ -18,7 +18,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 document.body.style.margin =0;
 document.body.appendChild(renderer.domElement);
-camera.position.z = 80;
+camera.position.z = 50;
 this.controls = new OrbitControls(camera, renderer.domElement);
 
 
@@ -54,6 +54,7 @@ let ambientLight = new THREE.AmbientLight( 0x000000 );
 scene.add( ambientLight );
 gui.addScene(scene, ambientLight, renderer);
 gui.addMaterials(materials);
+import {fragmentShader, vertexShader} from './shaders.js';
 
 let lights = [];
 lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
@@ -75,7 +76,9 @@ const poolSize = 12;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 10;
-let pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, materials["phong"]);
+//let mat = materials["phong"];
+let mat = getMaterial();
+let pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, mat);
 
 
 
@@ -127,6 +130,28 @@ function moveCamera(spline) {
 
     var limit = 1 - cameraSpeed;
     t = (t >= limit) ? 0 : t += cameraSpeed;
+}
+
+function getMaterial(){
+    let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    let tmp_uniforms = {
+		    time: { value: 1.0 },
+        color: {type: "c", value: new THREE.Color( 0xff3322 )},
+		    uResolution: { value: screenResolution }
+	  };
+    //console.log(vertexShader());
+    let material = new THREE.ShaderMaterial( {
+	      uniforms: THREE.UniformsUtils.merge([
+            THREE.UniformsLib['lights'],
+            tmp_uniforms
+        ]),
+        lights: true,
+	      vertexShader: vertexShader(),
+	      fragmentShader: fragmentShader()
+
+    } );
+    //console.log(material.vertexShader);
+    return material;
 }
 
 

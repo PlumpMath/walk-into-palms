@@ -23,7 +23,7 @@ export default class Palm{
             growth: 0.12,
             foliage_start_at: 56,
             trunk_regular: false,
-            buffers: false,
+            buffers: true,
             angle_open: 36.17,
             starting_angle_open: 50
         };

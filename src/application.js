@@ -23,7 +23,7 @@ this.controls = new OrbitControls(camera, renderer.domElement);
 
 
 //camera
-var cameraSpeedDefault = 0.008;
+var cameraSpeedDefault = 0.0008;
 var cameraSpeed = cameraSpeedDefault;
 var jumpFrequency = 0.0009; // how often is the camera jumping
 var cameraZposition = 100;
@@ -33,8 +33,8 @@ var cameraHeight = 0; // how high is the camera on the y axis
 //curve
 let t = 0;
 const radius = 200;
-const radius_offset = 60;
-let spline = createPath(radius, radius_offset);
+const radius_offset = 150;
+let spline = createPath(radius, radius_offset, 0.05);
 // stats
 const stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -45,7 +45,9 @@ const geometries = new CollectionGeometries;
 var objects = [];
 var group = new THREE.Group();
 
-let scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed);
+let fakeCamera = new THREE.Mesh(new THREE.BoxGeometry(30,30,30), materials["lambert"]);
+scene.add(fakeCamera);
+let scenography = new Scenography(fakeCamera, spline, t, cameraHeight, cameraSpeed);
 
 //lights
 let ambientLight = new THREE.AmbientLight( 0x000000 );

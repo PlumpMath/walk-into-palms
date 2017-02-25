@@ -29,14 +29,15 @@ export default class Pool {
             let axis = new Vector3( 0, 1, 0 );
             let angle = Math.PI / 2;
             // there is no function to get the secant. I take the tangen and i rotate it
-            let secantVector = tangentVector.applyAxisAngle( axis, angle );
-            let bla;
-            if(flip_direction){
-                bla = point.add(secantVector);
+            let secantVector = tangentVector;
+            secantVector.applyAxisAngle( axis, angle );
+            let new_pos;
+            if (flip_direction) {
+                new_pos = point.add(secantVector);
             }else{
-                bla = point.sub(secantVector);
+                new_pos = point.sub(secantVector);
             }
-            obj.position.set(bla.x, bla.y, bla.z);
+            obj.position.set(new_pos.x, new_pos.y, new_pos.z);
             this.container.push(obj);
             this.scene.add(obj);
             flip_direction = !flip_direction;
@@ -57,25 +58,23 @@ export default class Pool {
     update(camera_position_on_spline){
         //if camera position on spline is bigger than a palm
         //it means that this palm is no longer into the scene, put it back
-        // here there is an error, when you are at postion 9.5 in the curve you have still to be able to see
-        // the palms in position 0.1. handle this case
         let flip_direction = true;
         for(let i = 0; i <= this.index_positions.length; i++ ){
             let object_position = this.index_positions[i];
             let horizon = camera_position_on_spline + this.percent_covered;
-            if (horizon >= 1.0){
-                horizon = horizon - 1.0;
-                if (
-                    (object_position < camera_position_on_spline && object_position < 1.0) &&
-                        (object_position > horizon)
-                ){
+            flip_direction = !flip_direction;
+            if (object_position < camera_position_on_spline) {
+                // this condition handles the case when you are at postion 9.5 in the curve
+                //and you have still to be able to see the palms in position 0.1
+
+                console.log(flip_direction);
+                if (horizon >= 1.0){
+                    horizon = horizon - 1.0;
+                    if (object_position > horizon){
+                        this.putObjectForwardTheCamera(camera_position_on_spline, i, flip_direction);
+                    }
+                } else {
                     this.putObjectForwardTheCamera(camera_position_on_spline, i, flip_direction);
-                    flip_direction = !flip_direction;
-                }
-            }else{
-                if (object_position < camera_position_on_spline) {
-                    this.putObjectForwardTheCamera(camera_position_on_spline, i, flip_direction);
-                    flip_direction = !flip_direction;
                 }
             }
         }
@@ -91,20 +90,27 @@ export default class Pool {
             adjusted_position = new_position_on_curve;
         }
         this.index_positions[object_index] = adjusted_position;
+
         let point = this.curve.getPoint(adjusted_position);
         let tangentVector = this.curve.getTangent(adjusted_position).multiplyScalar(
             this.distance_from_path, 0, this.distance_from_path);
         let axis = new Vector3( 0, 1, 0 );
         let angle = Math.PI / 2;
         // there is no function to get the secant. I take the tangen and i rotate it
-        let secantVector = tangentVector.applyAxisAngle( axis, angle );
-        let bla;
-        if(flip_direction){
-            bla = point.add(secantVector);
-        }else{
-            bla = point.sub(secantVector);
+        let secantVector = tangentVector;
+        secantVector.applyAxisAngle( axis, angle );
+        let new_pos;
+
+        if (flip_direction) {
+            new_pos = point.add(secantVector);
+            console.log("Y");
+        } else {
+            new_pos = point.sub(secantVector);
+            console.log("N");
         }
-        object.position.set(bla.x, bla.y, bla.z);
+        object.position.set(new_pos.x, new_pos.y, new_pos.z);
+        object.updateMatrix();
+        //object.applyMatrix(new Matrix4().makeTranslation(new_pos.x, new_pos.y, new_pos.z));
 
     }
 }

@@ -1,15 +1,13 @@
 import {Perlin} from './perlin.js';
 import {CatmullRomCurve3, Vector3} from 'three';
-export function createPath(radius, radius_offset){
-    //Create a closed wavey loop
+export function createPath(radius, radius_offset, definition = 0.05){
+    //definition: the smaller, the higher the definition of the curve
     let complete_round = Math.PI * 2;
-    let definition = 0.05; //the smaller, the higher the definition of the curve
     let vertices = [];
     let perlin = new Perlin(Math.random());
     let x_offset = 0;
     for (let angle = 0; angle <= complete_round; angle+= definition){
         let noise = perlin.noise(x_offset, 0, 0);
-        //console.log(noise);
         let smoothed_offset = smoothLastPoints(radius_offset, angle, complete_round);
         let offset = map(noise, 0 ,1 , -smoothed_offset, smoothed_offset);
         let r = radius + offset;

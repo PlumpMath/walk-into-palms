@@ -23,7 +23,7 @@ this.controls = new OrbitControls(camera, renderer.domElement);
 
 
 //camera
-var cameraSpeedDefault = 0.00008;
+var cameraSpeedDefault = 0.008;
 var cameraSpeed = cameraSpeedDefault;
 var jumpFrequency = 0.0009; // how often is the camera jumping
 var cameraZposition = 100;
@@ -131,7 +131,7 @@ function moveCamera(spline) {
 function render(){
     stats.begin();
     scenography.update(1);
-    pool.update(scenography.getCameraPositionOnSpline);
+    pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
     stats.end();
 	  requestAnimationFrame(render);

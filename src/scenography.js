@@ -35,6 +35,12 @@ export default class Scenography {
         this.t = (this.t >= limit) ? 0 : this.t += this.cameraSpeed;
     }
 
+    getCameraPositionOnSpline(){
+        // it returns a value between 0 and 1. O when at the beginning
+        // of the spline, 1 when at the end
+        return this.t;
+    }
+
 }
 
 

@@ -11,15 +11,12 @@ import Scenography from './scenography.js';
 import Pool from './pool.js';
 import {fragmentShader, vertexShader} from './shaders.js';
 const OrbitControls = require('three-orbit-controls')(THREE);
-const debug = true;
+import {PointLights} from './pointLights.js';
 
-let gui;
-let scene;
-let renderer;
-let stats;
+const debug = true;
+let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, materials;
 
 //camera
-let camera;
 var cameraSpeedDefault = 0.00008;
 var cameraSpeed = cameraSpeedDefault;
 var jumpFrequency = 0.0009; // how often is the camera jumping
@@ -31,21 +28,12 @@ var cameraHeight = 30; // how high is the camera on the y axis
 let t = 0;
 const radius = 200;
 const radius_offset = 150;
-let spline;
-
-
-//scene
-let pool;
-let scenography;
-let controls;
 
 // objects
-let materials;
 const poolSize = 12;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
-//let mat = materials["phong"];
 
 init();
 
@@ -82,22 +70,9 @@ function init(){
     gui.addScene(scene, ambientLight, renderer);
     gui.addMaterials(materials);
 
-    let lights = [];
-    lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-    lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-    lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-    lights[ 0 ].position.set( 0, 200, 0 );
-    lights[ 1 ].position.set( 100, 200, 100 );
-    lights[ 2 ].position.set( - 100, - 200, - 100 );
-
-    scene.add( lights[ 0 ] );
-    scene.add( lights[ 1 ] );
-    scene.add( lights[ 2 ] );
-
-    var axisHelper = new THREE.AxisHelper( 50 );
-    scene.add( axisHelper );
-
-
+    PointLights().map((light) => {
+        scene.add( light );
+    });
 
     window.addEventListener('resize', function() {
         var WIDTH = window.innerWidth,
@@ -108,6 +83,7 @@ function init(){
     });
 
     addStats(debug);
+    addAxis(debug);
     addPathToScene(scene, spline);
     render();
 }
@@ -121,9 +97,6 @@ function render(){
 	  requestAnimationFrame(render);
 }
 
-
-
-
 function addPathToScene(scene, curve){
     let geometry = new THREE.Geometry();
     geometry.vertices = curve.getPoints( curveDensity );
@@ -134,12 +107,18 @@ function addPathToScene(scene, curve){
 }
 
 
+function addAxis(debug){
+    if (debug) {
+        var axisHelper = new THREE.AxisHelper( 50 );
+        scene.add( axisHelper );
+    }
+}
+
 function addStats(debug) {
     if (debug) {
         document.body.appendChild(stats.domElement);
     }
 }
-
 
 function moveCamera(spline) {
     var camPos = spline.getPoint(t);

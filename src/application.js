@@ -1,28 +1,25 @@
 /* eslint-env browser */
 import * as THREE from 'three';
+import $ from "jquery";
 import Gui from './gui.js';
 import Stats from 'stats.js';
 import CollectionGeometries from './geometries.js';
 import CollectionMaterials from './materials.js';
 import {createPath} from './path.js';
+import {loadAudio} from './audio_loader.js';
 import Scenography from './scenography.js';
 import Pool from './pool.js';
-
-const gui = new Gui();
-const debug = true;
-const scene = new THREE.Scene();
+import {fragmentShader, vertexShader} from './shaders.js';
 const OrbitControls = require('three-orbit-controls')(THREE);
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth, window.innerHeight);
+const debug = true;
 
-document.body.style.margin =0;
-document.body.appendChild(renderer.domElement);
-camera.position.z = 50;
-this.controls = new OrbitControls(camera, renderer.domElement);
-
+let gui;
+let scene;
+let renderer;
+let stats;
 
 //camera
+let camera;
 var cameraSpeedDefault = 0.00008;
 var cameraSpeed = cameraSpeedDefault;
 var jumpFrequency = 0.0009; // how often is the camera jumping
@@ -34,65 +31,96 @@ var cameraHeight = 30; // how high is the camera on the y axis
 let t = 0;
 const radius = 200;
 const radius_offset = 150;
-let spline = createPath(radius, radius_offset);
-// stats
-const stats = new Stats();
-stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+let spline;
+
 
 //scene
-const materials = new CollectionMaterials;
-const geometries = new CollectionGeometries;
-var objects = [];
-var group = new THREE.Group();
-
-let fakeCamera = new THREE.Mesh(new THREE.BoxGeometry(30,30,30), materials["lambert"]);
-//scene.add(fakeCamera);
-let scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed);
-
-//lights
-let ambientLight = new THREE.AmbientLight( 0x000000 );
-scene.add( ambientLight );
-gui.addScene(scene, ambientLight, renderer);
-gui.addMaterials(materials);
-import {fragmentShader, vertexShader} from './shaders.js';
-
-let lights = [];
-lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-lights[ 0 ].position.set( 0, 200, 0 );
-lights[ 1 ].position.set( 100, 200, 100 );
-lights[ 2 ].position.set( - 100, - 200, - 100 );
-
-scene.add( lights[ 0 ] );
-scene.add( lights[ 1 ] );
-scene.add( lights[ 2 ] );
-
-var axisHelper = new THREE.AxisHelper( 50 );
-scene.add( axisHelper );
+let pool;
+let scenography;
+let controls;
 
 // objects
+let materials;
 const poolSize = 12;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
 //let mat = materials["phong"];
-let mat = getMaterial();
-let pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, mat);
+
+init();
+
+function init(){
+    gui = new Gui();
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    materials = new CollectionMaterials;
+
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.style.margin =0;
+    document.body.appendChild(renderer.domElement);
+    camera.position.z = cameraHeight;
+    controls = new OrbitControls(camera, renderer.domElement);
+
+    //scenography
+    let fakeCamera = new THREE.Mesh(new THREE.BoxGeometry(30,30,30), materials["lambert"]);
+    //scene.add(fakeCamera);
+    spline = createPath(radius, radius_offset);
+    scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed);
+
+    //stats
+    stats = new Stats();
+    stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+
+    //palms
+    let mat = getMaterial();
+    pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, mat);
+
+    //lights
+    let ambientLight = new THREE.AmbientLight( 0x000000 );
+    scene.add( ambientLight );
+    gui.addScene(scene, ambientLight, renderer);
+    gui.addMaterials(materials);
+
+    let lights = [];
+    lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+    lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+    lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+    lights[ 0 ].position.set( 0, 200, 0 );
+    lights[ 1 ].position.set( 100, 200, 100 );
+    lights[ 2 ].position.set( - 100, - 200, - 100 );
+
+    scene.add( lights[ 0 ] );
+    scene.add( lights[ 1 ] );
+    scene.add( lights[ 2 ] );
+
+    var axisHelper = new THREE.AxisHelper( 50 );
+    scene.add( axisHelper );
 
 
 
-window.addEventListener('resize', function() {
-    var WIDTH = window.innerWidth,
-    HEIGHT = window.innerHeight;
-    renderer.setSize(WIDTH, HEIGHT);
-    camera.aspect = WIDTH / HEIGHT;
-    camera.updateProjectionMatrix();
-});
+    window.addEventListener('resize', function() {
+        var WIDTH = window.innerWidth,
+            HEIGHT = window.innerHeight;
+        renderer.setSize(WIDTH, HEIGHT);
+        camera.aspect = WIDTH / HEIGHT;
+        camera.updateProjectionMatrix();
+    });
 
-addStats(debug);
-addPathToScene(scene, spline);
-render();
+    addStats(debug);
+    addPathToScene(scene, spline);
+    render();
+}
+
+function render(){
+    stats.begin();
+    scenography.update(1);
+    pool.update(scenography.getCameraPositionOnSpline());
+	  renderer.render(scene, camera);
+    stats.end();
+	  requestAnimationFrame(render);
+}
+
 
 
 
@@ -152,14 +180,4 @@ function getMaterial(){
     } );
     //console.log(material.vertexShader);
     return material;
-}
-
-
-function render(){
-    stats.begin();
-    scenography.update(1);
-    pool.update(scenography.getCameraPositionOnSpline());
-	  renderer.render(scene, camera);
-    stats.end();
-	  requestAnimationFrame(render);
 }

@@ -1,7 +1,6 @@
 export function vertexShader(){
     let vs =
         "precision mediump float;\n"+
-
         "attribute float angle;\n"+
         "varying float fAngle;\n"+
         "varying vec3 vecNormal;\n"+

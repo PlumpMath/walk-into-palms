@@ -23,7 +23,7 @@ this.controls = new OrbitControls(camera, renderer.domElement);
 
 
 //camera
-var cameraSpeedDefault = 0.0008;
+var cameraSpeedDefault = 0.00008;
 var cameraSpeed = cameraSpeedDefault;
 var jumpFrequency = 0.0009; // how often is the camera jumping
 var cameraZposition = 100;
@@ -75,7 +75,7 @@ scene.add( axisHelper );
 const poolSize = 12;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
-const distance_from_path = 10;
+const distance_from_path = 30;
 //let mat = materials["phong"];
 let mat = getMaterial();
 let pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, mat);

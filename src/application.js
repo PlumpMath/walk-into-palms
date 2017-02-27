@@ -1,6 +1,8 @@
 /* eslint-env browser */
 import * as THREE from 'three';
 import $ from "jquery";
+import Tone from 'tone';
+
 import Gui from './gui.js';
 import Stats from 'stats.js';
 import CollectionGeometries from './geometries.js';
@@ -15,6 +17,9 @@ import {PointLights} from './pointLights.js';
 
 const debug = true;
 let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, materials;
+
+let treshold = 0;
+let rms = 0;
 
 //camera
 var cameraSpeedDefault = 0.00008;
@@ -35,7 +40,15 @@ const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
 
-init();
+// AUDIO
+let meter = new Tone.Meter("level");
+let player = new Tone.Player("../Adventura.mp3").connect(meter).toMaster();
+player.autostart = true;
+var loadedAudio = new Promise(function(done){
+		Tone.Buffer.on("load", done);
+});
+
+loadedAudio.then(init());
 
 function init(){
     gui = new Gui();
@@ -88,11 +101,22 @@ function init(){
     render();
 }
 
+function calculateRms(){
+    let rms = meter.value;
+    treshold = lerp(treshold, gui.params.minTreshold, gui.params.decayRate);
+    if (rms > treshold) {
+        treshold = rms;
+    }
+    console.log(treshold);
+    //     treeMaterial.uniforms.rms.value = threshold;
+}
+
 function render(){
     stats.begin();
     scenography.update(1);
     pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
+    calculateRms();
     stats.end();
 	  requestAnimationFrame(render);
 }
@@ -159,4 +183,8 @@ function getMaterial(){
     } );
     //console.log(material.vertexShader);
     return material;
+}
+
+function lerp(start, end, pos){
+    return start + (end - start) * pos;
 }

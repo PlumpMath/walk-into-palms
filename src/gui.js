@@ -10,12 +10,15 @@ export default class Gui extends DAT.GUI{
             }
         );
         this.params = {
+            minTreshold: 0.3,
+            decayRate:0.2,
             geometry: "sphere",
             material: "standard",
             num:3
         };
 
-
+        this.add(this.params, "minTreshold", 0.001, 0.5).step(0.001);
+        this.add(this.params, 'decayRate', 0.05, 1.0).step(0.05);
         this.add(this.params, "geometry", ["sphere", "box", "lathe"]);
         this.add(this.params, "num").min(1).max(800).step(1);
         this.add(this.params, "material", ["standard", "wireframe", "phong","lambert"]).onChange(this._updateMaterialFolder());

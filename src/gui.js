@@ -2,7 +2,7 @@ import DAT from 'dat-gui';
 import {Color, Fog} from 'THREE';
 
 export default class Gui extends DAT.GUI{
-    constructor(){
+    constructor(material){
         super(
             {
                 load: JSON,
@@ -10,23 +10,28 @@ export default class Gui extends DAT.GUI{
             }
         );
         this.params = {
-            magAudio:0.0,
             magMult: 100.0,
-            geometry: "sphere",
-            material: "standard",
-            selectedBin:0,
-            num:3
+            minColor:0.2,
+            maxColor:0.4,
+            saturation: 0.2,
+            brightness: 0.2,
+            displacement:0.9,
+            selectedBin:0
         };
+        this.material = material;
 
         this.add(this.params, 'magMult', 0.5, 100.0).step(1);
         this.add(this.params, 'selectedBin', 0, 32).step(1);
-        this.add(this.params, "geometry", ["sphere", "box", "lathe"]);
-        this.add(this.params, "material", ["standard", "wireframe", "phong","lambert"]).onChange(this._updateMaterialFolder());
+        this.add(this.params, 'minColor', 0.01, 1.0).step(0.01).onChange(this._onMinColorUpdate(this.material));
+        this.add(this.params, 'maxColor', 0.01, 1.0).step(0.01).onChange(this._onMaxColorUpdate(this.material));
+        this.add(this.params, 'saturation', 0.01, 1.0).step(0.01).onChange(this._onSaturationUpdate(this.material));
+        this.add(this.params, 'brightness', 0.01, 1.0).step(0.01).onChange(this._onBrightnessUpdate(this.material));
+        this.add(this.params, 'displacement', 0.01, 1.0).step(0.01).onChange(this._onDisplacementUpdate(this.material));;
 
     }
 
-    addMaterials(materials){
-        this.materials = materials;
+    addMaterial(material){
+        this.material = material;
     }
 
     // credtis to these methods goes to Greg Tatum https://threejs.org/docs/scenes/js/material.js
@@ -79,102 +84,34 @@ export default class Gui extends DAT.GUI{
         };
     }
 
-    _updateMaterialFolder(){
-	      return ( material ) => {
-            if (!this.materials){
-                console.log(
-                    "If you want to edit the materials in the GUI, you have to add them using gui.addMaterials"
-                );
-                return;
-            };
-            switch (material) {
-                case "phong":
-                    this._addPhongMaterial(this.materials[material]);
-                    break;
-                case "standard":
-                    this._addStandardMaterial(this.materials[material]);
-                    break;
-                case "wireframe":
-                    this._addMaterialColor(this.materials[material]);
-                    break;
-                case "lambert":
-                    this._addLambertMaterial(this.materials[material]);
-                    break;
-                default:
-                this._addMaterialColor(this.materials[material]);
-            }
+    _onMinColorUpdate(material) {
+	      return function ( value ){
+            material.uniforms.minColor.value = value;
         };
     }
 
-
-    _removeFolder(name) {
-        let folder = this.__folders[name];
-        if (!folder) {
-            return;
-        }
-        folder.close();
-        this.__ul.removeChild(folder.domElement.parentNode);
-        delete this.__folders[name];
-        this.onResize();
-    }
-
-    _addPhongMaterial (material) {
-        this._removeFolder("Material");
-        var folder = this.addFolder('Material');
-        var data = {
-            color : material.color.getHex(),
-            emissive : material.emissive.getHex(),
-            specular : material.specular.getHex()
+    _onMaxColorUpdate(material) {
+	      return function ( value ){
+            material.uniforms.maxColor.value = value;
         };
-
-        folder.addColor( data, 'color' ).onChange( this._handleColorChange( material.color ) );
-        folder.addColor( data, 'emissive' ).onChange( this._handleColorChange( material.emissive ) );
-        folder.addColor( data, 'specular' ).onChange( this._handleColorChange( material.specular ) );
-        folder.add( material, 'shininess', 0, 100);
-        folder.add( material, 'wireframe' );
-        folder.add( material, 'wireframeLinewidth', 0, 10 );
-        folder.add( material, 'fog' );
     }
 
-    _addStandardMaterial (material) {
-        this._removeFolder("Material");
-        var folder = this.addFolder('Material');
-        let data = {
-            color : material.color.getHex(),
-            emissive : material.emissive.getHex()
+    _onSaturationUpdate(material) {
+	      return function ( value ){
+            material.uniforms.saturation.value = value;
         };
-
-        folder.addColor( data, 'color' ).onChange( this._handleColorChange( material.color ) );
-        folder.addColor( data, 'emissive' ).onChange( this._handleColorChange( material.emissive ) );
-        folder.add( material, 'roughness', 0, 1 );
-        folder.add( material, 'metalness', 0, 1 );
-        folder.add( material, 'wireframe' );
-        folder.add( material, 'wireframeLinewidth', 0, 10 );
-        folder.add( material, 'fog' );
     }
-    _addLambertMaterial(material){
-        this._removeFolder("Material");
-        let folder = this.addFolder('Material');
-        let data = {
-            color : material.color.getHex(),
-            emissive : material.emissive.getHex()
+
+    _onBrightnessUpdate(material) {
+	      return function ( value ){
+            material.uniforms.brightness.value = value;
         };
-
-        folder.addColor( data, 'color' ).onChange( this._handleColorChange( material.color ) );
-        folder.addColor( data, 'emissive' ).onChange( this._handleColorChange( material.emissive ) );
-        folder.add( material, 'wireframe' );
-        folder.add( material, 'wireframeLinewidth', 0, 10 );
-        folder.add( material, 'fog' );
-        folder.add( material, 'reflectivity', 0, 1 );
-        folder.add( material, 'refractionRatio', 0, 1 );
     }
 
-    _addMaterialColor(material){
-        this._removeFolder("Material");
-        var folder = this.addFolder('Material');
-        let data = {
-            color : material.color.getHex()
+    _onDisplacementUpdate(material) {
+	      return function ( value ){
+            material.uniforms.displacement.value = value;
         };
-        folder.addColor( data, 'color' ).onChange( this._handleColorChange( material.color ) );
     }
+
 }

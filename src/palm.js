@@ -30,7 +30,42 @@ export default class Palm{
 
         let leafGeometry = new LeafGeometry(leaf_opt);
         let trunkGeometry = new BoxGeometry(5,5,5);
-        let palm = new PalmGenerator(leafGeometry, trunkGeometry, palm_opt);
+        let palm = new PalmGenerator(leafGeometry, trunkGeometry, this.randomPalmOpt());
         return palm;
+    }
+
+
+    randomPalmOpt(){
+        let palm_one = {
+            spread: 0.1,
+            angle: 137.5,
+            num: 406,
+            growth: 0.12,
+            foliage_start_at: 56,
+            trunk_regular: false,
+            buffers: true,
+            angle_open: 36.17,
+            starting_angle_open: 50
+        };
+        let palm_two = {
+            spread: 0.30,
+            angle: 135.71,
+            num: 307,
+            growth: 0.25,
+            foliage_start_at: 48.52,
+            trunk_regular: false,
+            buffers: false,
+            angle_open: 52.93,
+            starting_angle_open: 50
+         };
+
+        let options = [palm_one, palm_two];
+        return options[this.getRandomInt(0, (options.length -1))];
+    }
+
+    getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
     }
 }

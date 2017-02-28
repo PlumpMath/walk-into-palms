@@ -26,6 +26,10 @@ export function fragmentShader(){
         "varying vec4 vecPos;\n"+
         "uniform vec3 color;\n"+
         "uniform vec2 uResolution;\n"+
+        "uniform float minColor;\n"+
+        "uniform float maxColor;\n"+
+        "uniform float saturation;\n"+
+        "uniform float brightness;\n"+
         "struct PointLight {\n"+
             "vec3 position;\n"+
             "vec3 color;\n"+
@@ -49,8 +53,8 @@ export function fragmentShader(){
                 "vec3 lightDirection = normalize(vecPos.xyz - adjustedLight);\n"+
                 "addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0) * pointLights[l].color;\n"+
                 "}\n"+
-            "float angleToCol = clamp(fAngle/256.0, 0.4, 0.8);\n"+ // questi due valori definiscono il range
-            "vec3 angleHSBColor = vec3(angleToCol, 0.2, 0.5);\n"+
+            "float angleToCol = clamp(fAngle/256.0, minColor, maxColor);\n"+ // questi due valori definiscono il range
+            "vec3 angleHSBColor = vec3(angleToCol, saturation, brightness);\n"+
             "vec4 col = mix(vec4(hsb2rgb(angleHSBColor), 1.0), vec4(addedLights.rgb, 1.0), 0.2);\n"+
             "gl_FragColor = col;\n"+
         "}";

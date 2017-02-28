@@ -5,8 +5,6 @@ import Tone from 'tone';
 
 import Gui from './gui.js';
 import Stats from 'stats.js';
-import CollectionGeometries from './geometries.js';
-import CollectionMaterials from './materials.js';
 import {createPath} from './path.js';
 import {loadAudio} from './audio_loader.js';
 import Scenography from './scenography.js';
@@ -16,16 +14,15 @@ const OrbitControls = require('three-orbit-controls')(THREE);
 import {PointLights} from './pointLights.js';
 
 const debug = true;
-let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, materials;
-
+let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time;
 
 //camera
-var cameraSpeedDefault = 0.00008;
+var cameraSpeedDefault = 0.0008;
 var cameraSpeed = cameraSpeedDefault;
 var jumpFrequency = 0.0009; // how often is the camera jumping
 var cameraZposition = 100;
 var curveDensity = 600; // how many points define the path
-var cameraHeight = 30; // how high is the camera on the y axis
+var cameraHeight = 70; // how high is the camera on the y axis
 
 //curve
 let t = 0;
@@ -49,13 +46,21 @@ player.loop = true;
 var loadedAudio = new Promise(function(done){
 		Tone.Buffer.on("load", done);
 });
+
+
 loadedAudio.then(init());
 
 function init(){
-    gui = new Gui();
+    var clock = new Tone.Clock(function(time){
+        maybeChangeScene(time);
+    }, 1);
+    clock.start(0.0);
+    current_time = 0;
+
+    palmMaterial = getMaterial();
+    gui = new Gui(palmMaterial);
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    materials = new CollectionMaterials;
 
     renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -65,8 +70,6 @@ function init(){
     controls = new OrbitControls(camera, renderer.domElement);
 
     //scenography
-    let fakeCamera = new THREE.Mesh(new THREE.BoxGeometry(30,30,30), materials["lambert"]);
-    //scene.add(fakeCamera);
     spline = createPath(radius, radius_offset);
     scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed);
 
@@ -75,14 +78,12 @@ function init(){
     stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 
     //palms
-    palmMaterial = getMaterial();
     pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, palmMaterial);
 
     //lights
     let ambientLight = new THREE.AmbientLight( 0x000000 );
     scene.add( ambientLight );
     gui.addScene(scene, ambientLight, renderer);
-    gui.addMaterials(materials);
 
     PointLights().map((light) => {
         scene.add( light );
@@ -117,7 +118,13 @@ function passAudioToMaterial(values){
 
 function render(){
     stats.begin();
-    scenography.update(1);
+    palmMaterial.uniforms.magAudio.needUpdate = true;
+    palmMaterial.uniforms.minColor.needUpdate = true;
+    palmMaterial.uniforms.maxColor.needUpdate = true;
+    palmMaterial.uniforms.saturation.needUpdate = true;
+    palmMaterial.uniforms.brightness.needUpdate = true;
+    palmMaterial.uniforms.displacement.needUpdate = true;
+    scenography.update(current_time);
     pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
     passAudioToMaterial(fft.analyse());
@@ -148,30 +155,16 @@ function addStats(debug) {
     }
 }
 
-function moveCamera(spline) {
-    var camPos = spline.getPoint(t);
-    var yPos;
-    yPos = cameraHeight;
-    camera.position.set(camPos.x, yPos, camPos.z);
-
-    // the lookAt position is just 20 points ahead the current position
-    // but when we are close to the end of the path, the look at point
-    // is the first point in the curve
-    var next = t + cameraSpeed * 20;
-    var lookAtPoint = (next > 1) ? 0 : next;
-    var look = spline.getPoint(lookAtPoint);
-    look.y = yPos;
-    camera.lookAt(look);
-
-    var limit = 1 - cameraSpeed;
-    t = (t >= limit) ? 0 : t += cameraSpeed;
-}
-
 function getMaterial(){
     let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     let tmp_uniforms = {
 		    time: { value: 1.0 },
         magAudio: {value: 0.0},
+        displacement: {value: 0.0},
+        minColor: {value: 0.2},
+        maxColor: {value: 0.4},
+        saturation: {value: 0.2},
+        brightness: {value: 0.2},
         color: {type: "c", value: new THREE.Color( 0xff3322 )},
 		    uResolution: { value: screenResolution }
 	  };
@@ -190,6 +183,7 @@ function getMaterial(){
     return material;
 }
 
-function lerp(start, end, pos){
-    return start + (end - start) * pos;
-}
+function maybeChangeScene(time){
+    current_time = time;
+};
+

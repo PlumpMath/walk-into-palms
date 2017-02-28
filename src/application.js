@@ -18,8 +18,6 @@ import {PointLights} from './pointLights.js';
 const debug = true;
 let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, materials;
 
-let treshold = 0;
-let rms = 0;
 
 //camera
 var cameraSpeedDefault = 0.00008;
@@ -39,15 +37,18 @@ const poolSize = 12;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
+let palmMaterial;
 
 // AUDIO
-let meter = new Tone.Meter("level");
-let player = new Tone.Player("../Adventura.mp3").connect(meter).toMaster();
+let fftSize=32;
+var fft = new Tone.Analyser("fft", fftSize);
+// check property "smoothing", it does the decayRate I thinnk
+let player = new Tone.Player("../Adventura.mp3").fan(fft).toMaster();
 player.autostart = true;
+player.loop = true;
 var loadedAudio = new Promise(function(done){
 		Tone.Buffer.on("load", done);
 });
-
 loadedAudio.then(init());
 
 function init(){
@@ -74,8 +75,8 @@ function init(){
     stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 
     //palms
-    let mat = getMaterial();
-    pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, mat);
+    palmMaterial = getMaterial();
+    pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, palmMaterial);
 
     //lights
     let ambientLight = new THREE.AmbientLight( 0x000000 );
@@ -101,14 +102,17 @@ function init(){
     render();
 }
 
-function calculateRms(){
-    let rms = meter.value;
-    treshold = lerp(treshold, gui.params.minTreshold, gui.params.decayRate);
-    if (rms > treshold) {
-        treshold = rms;
-    }
-    console.log(treshold);
-    //     treeMaterial.uniforms.rms.value = threshold;
+function passAudioToMaterial(values){
+    let magAudio;
+		for (var i = 0, len = values.length; i < len; i++){
+				var fftVal = values[i] / 255;
+        fftVal = fftVal === 0 ? 0.05 : fftVal;
+        fftVal = fftVal * gui.params.magMult;
+        if (i === gui.params.selectedBin) {
+            magAudio = fftVal;
+        }
+		}
+    palmMaterial.uniforms.magAudio.value = values[magAudio];
 }
 
 function render(){
@@ -116,7 +120,7 @@ function render(){
     scenography.update(1);
     pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
-    calculateRms();
+    passAudioToMaterial(fft.analyse());
     stats.end();
 	  requestAnimationFrame(render);
 }
@@ -167,6 +171,7 @@ function getMaterial(){
     let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     let tmp_uniforms = {
 		    time: { value: 1.0 },
+        magAudio: {value: 0.0},
         color: {type: "c", value: new THREE.Color( 0xff3322 )},
 		    uResolution: { value: screenResolution }
 	  };

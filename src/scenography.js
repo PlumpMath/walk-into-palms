@@ -1,7 +1,7 @@
 export default class Scenography {
     constructor(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial){
         this.material = palmMaterial;
-        this.current_index_scene = 0;
+        this.current_index_scene = null;
         this.spline = spline;
         this.camera = camera;
         this.t = t;
@@ -16,7 +16,7 @@ export default class Scenography {
             this.current_index_scene = current_schedule;
             this._implementScene(current_schedule);
         }
-        //this._maybeMoveCamera(current_schedule);
+        this._maybeMoveCamera(current_schedule);
     }
 
     _maybeMoveCamera(scene_id){
@@ -65,6 +65,11 @@ export default class Scenography {
             this.material.uniforms.minColor.value = scene.minColor;
         }
 
+        if(scene.amplitude){
+            this.material.uniforms.amplitude.value = scene.amplitude;
+        }
+
+
         if(scene.cameraHeight){
             this.cameraHeight = scene.cameraHeight;
         }
@@ -94,26 +99,35 @@ export default class Scenography {
 
     _populateScenes(){
         let intro = {
-            selectedBin: 12,
+            selectedBin: 7.0,
+            amplitude:7.0,
             maxColor:0.9,
             minColor: 0.6,
             saturation: 0.9,
+            brightness: 0.5,
             speed: 0.005,
             followPath: true
         };
 
         let middle = {
+            amplitude:7.0,
             selectedBin: 22,
             speed: 0.005,
-            maxColor:0.2,
-            minColor: 0.4,
+            maxColor:1.0,
+            minColor: 0.75,
             saturation: 0.9,
+            brightness: 0.5,
             followPath: true
         };
 
         let end = {
             selectedBin: 19,
+            amplitude:7.0,
             followPath: false,
+            maxColor:0.53,
+            minColor: 0.01,
+            saturation: 0.78,
+            brightness: 0.61,
             cameraPos:{x:802.134170585785, y:154.09441190059349, z:260.62919104477186}
         };
 

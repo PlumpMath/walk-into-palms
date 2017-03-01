@@ -116,6 +116,7 @@ export default class Gui extends DAT.GUI{
 
     _onAmplitudeUpdate(material) {
 	      return function ( value ){
+            console.log(value);
             material.uniforms.amplitude.value = value;
         };
     }

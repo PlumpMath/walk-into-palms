@@ -10,7 +10,7 @@ export default class Gui extends DAT.GUI{
             }
         );
         this.params = {
-            magMult: 100.0,
+            amplitude: 3.5,
             minColor:0.2,
             maxColor:0.4,
             saturation: 0.2,
@@ -20,13 +20,13 @@ export default class Gui extends DAT.GUI{
         };
         this.material = material;
 
-        this.add(this.params, 'magMult', 0.5, 100.0).step(1);
+        this.add(this.params, 'amplitude', 0.0, 15.0).step(0.1).onChange(this._onAmplitudeUpdate(this.material));
         this.add(this.params, 'selectedBin', 0, 32).step(1);
         this.add(this.params, 'minColor', 0.01, 1.0).step(0.01).onChange(this._onMinColorUpdate(this.material));
         this.add(this.params, 'maxColor', 0.01, 1.0).step(0.01).onChange(this._onMaxColorUpdate(this.material));
         this.add(this.params, 'saturation', 0.01, 1.0).step(0.01).onChange(this._onSaturationUpdate(this.material));
         this.add(this.params, 'brightness', 0.01, 1.0).step(0.01).onChange(this._onBrightnessUpdate(this.material));
-        this.add(this.params, 'displacement', 0.01, 1.0).step(0.01).onChange(this._onDisplacementUpdate(this.material));;
+        this.add(this.params, 'displacement', 0.0, 10.0).step(0.01).onChange(this._onDisplacementUpdate(this.material));;
 
     }
 
@@ -111,6 +111,12 @@ export default class Gui extends DAT.GUI{
     _onDisplacementUpdate(material) {
 	      return function ( value ){
             material.uniforms.displacement.value = value;
+        };
+    }
+
+    _onAmplitudeUpdate(material) {
+	      return function ( value ){
+            material.uniforms.amplitude.value = value;
         };
     }
 

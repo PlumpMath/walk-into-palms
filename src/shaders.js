@@ -6,11 +6,15 @@ export function vertexShader(){
         "varying vec3 vecNormal;\n"+
         "varying vec4 vecPos;\n"+
         "uniform vec2 uResolution;\n"+
+        "uniform float displacement;\n"+
+        "uniform float magAudio;\n"+
+        "uniform float amplitude;\n"+
         "void main() {\n"+
         "vecNormal = normalMatrix * normal;\n"+
         // as the light later will be given in world coordinate space,
         // vPos has to be in world coordinate space too
-        "vecPos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n"+
+        "vec3 displacedPos = position + vecNormal * displacement * vec3(magAudio);\n"+
+        "vecPos = projectionMatrix * modelViewMatrix * vec4(displacedPos, 1.0);\n"+
         "fAngle = angle;\n"+
         "gl_Position = vecPos;\n"+
         "}";

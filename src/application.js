@@ -19,7 +19,6 @@ let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, cu
 //camera
 var cameraSpeedDefault = 0.0008;
 var cameraSpeed = cameraSpeedDefault;
-var jumpFrequency = 0.0009; // how often is the camera jumping
 var cameraZposition = 100;
 var curveDensity = 600; // how many points define the path
 var cameraHeight = 70; // how high is the camera on the y axis
@@ -71,7 +70,7 @@ function init(){
 
     //scenography
     spline = createPath(radius, radius_offset);
-    scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed);
+    scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial);
 
     //stats
     stats = new Stats();
@@ -108,17 +107,18 @@ function passAudioToMaterial(values){
 		for (var i = 0, len = values.length; i < len; i++){
 				var fftVal = values[i] / 255;
         fftVal = fftVal === 0 ? 0.05 : fftVal;
-        fftVal = fftVal * gui.params.magMult;
+        fftVal = fftVal;
         if (i === gui.params.selectedBin) {
             magAudio = fftVal;
         }
 		}
-    palmMaterial.uniforms.magAudio.value = values[magAudio];
+    palmMaterial.uniforms.magAudio.value = magAudio;
 }
 
 function render(){
     stats.begin();
     palmMaterial.uniforms.magAudio.needUpdate = true;
+    palmMaterial.uniforms.amplitude.needUpdate = true;
     palmMaterial.uniforms.minColor.needUpdate = true;
     palmMaterial.uniforms.maxColor.needUpdate = true;
     palmMaterial.uniforms.saturation.needUpdate = true;
@@ -160,6 +160,7 @@ function getMaterial(){
     let tmp_uniforms = {
 		    time: { value: 1.0 },
         magAudio: {value: 0.0},
+        amplitude: {value: 0.0},
         displacement: {value: 0.0},
         minColor: {value: 0.2},
         maxColor: {value: 0.4},

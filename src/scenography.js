@@ -1,5 +1,6 @@
 export default class Scenography {
     constructor(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial){
+        this.material = palmMaterial;
         this.current_index_scene = 0;
         this.spline = spline;
         this.camera = camera;
@@ -15,7 +16,7 @@ export default class Scenography {
             this.current_index_scene = current_schedule;
             this._implementScene(current_schedule);
         }
-        this._maybeMoveCamera(current_schedule);
+        //this._maybeMoveCamera(current_schedule);
     }
 
     _maybeMoveCamera(scene_id){
@@ -43,6 +44,34 @@ export default class Scenography {
     }
 
     _implementScene(scene_id){
+        let scene = this.scenes[scene_id];
+        if(scene.displacement){
+            this.material.uniforms.displacement.value = scene.displacement;
+        }
+
+        if(scene.brightness){
+            this.material.uniforms.brightness.value = scene.brightness;
+        }
+
+        if(scene.saturation){
+            this.material.uniforms.saturation.value = scene.saturation;
+        }
+
+        if(scene.maxColor){
+            this.material.uniforms.maxColor.value = scene.maxColor;
+        }
+
+        if(scene.minColor){
+            this.material.uniforms.minColor.value = scene.minColor;
+        }
+
+        if(scene.cameraHeight){
+            this.cameraHeight = scene.cameraHeight;
+        }
+
+        if(scene.cameraSpeed && scene.followPath === true){
+            this.cameraSpeed = scene.cameraSpeed;
+        }
     }
 
     getCameraPositionOnSpline(){
@@ -66,6 +95,9 @@ export default class Scenography {
     _populateScenes(){
         let intro = {
             selectedBin: 12,
+            maxColor:0.9,
+            minColor: 0.6,
+            saturation: 0.9,
             speed: 0.005,
             followPath: true
         };
@@ -73,6 +105,9 @@ export default class Scenography {
         let middle = {
             selectedBin: 22,
             speed: 0.005,
+            maxColor:0.2,
+            minColor: 0.4,
+            saturation: 0.9,
             followPath: true
         };
 

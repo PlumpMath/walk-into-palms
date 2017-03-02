@@ -2,6 +2,9 @@ import {map} from './helpers.js';
 
 export default class Scenography {
     constructor(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial){
+        this.selectedBin = 0;
+        this.cameraLowestSpeed = 0.0001;
+        this.cameraHighestSpeed = 0.0004;
         this.cameraHighest = 120;
         this.cameraLowest = 27;
         this.material = palmMaterial;
@@ -14,13 +17,26 @@ export default class Scenography {
         this.scenes = this._populateScenes();
     }
 
+    getSelectedBin(){
+        return this.selectedBin;
+    }
+
+    setSelectedBin(bin){
+        this.selectedBin = bin;
+    }
+
     update(time_in_seconds){
         console.log(time_in_seconds);
         let current_schedule = this._schedule(time_in_seconds);
         this._handleBlackAndWhite(current_schedule,time_in_seconds);
-        if (current_schedule !== this.current_index_scene){
+        this._handleCameraPosition(current_schedule,time_in_seconds);
+        this._handleCameraSpeed(current_schedule,time_in_seconds);
+        this._handleDisplacement(current_schedule,time_in_seconds);
+        if (current_schedule !== this.current_index_scene) {
+            console.log("Imp scene "+ current_schedule);
             this.current_index_scene = current_schedule;
             this._implementScene(current_schedule);
+            console.log(this.scenes[current_schedule]);
         }
         this._maybeMoveCamera(current_schedule);
     }
@@ -29,16 +45,46 @@ export default class Scenography {
         //in the scene with id 1 the brightness goes up
         let maxBrightness = 0.5;
         if (scene_id === 1) {
-            let bright = map(time, 25, 45, 0.0, maxBrightness);
+            let bright = map(time, 26, 45, 0.0, maxBrightness);
             this.material.uniforms.brightness.value = bright;
         }
 
+        // in the last scene the color goes back to black and white
         if (scene_id === 4) {
             let bright = map(time, 120, 133, maxBrightness, 0.0);
             this.material.uniforms.brightness.value = bright;
         }
-        // in the last scene the color goes back to black and white
     }
+
+    _handleCameraPosition(scene_id, time){
+        // in the last scene the camera goes back to the ground
+        if (scene_id === 4) {
+            let pos = map(time, 120, 138, this.cameraHighest, this.cameraLowest);
+            this.cameraHeight = pos;
+        }
+    }
+
+    _handleCameraSpeed(scene_id, time){
+        // in the last scene the camera slows down
+        if (scene_id === 2) {
+            let speed = map(time, 49, 95, this.cameraLowestSpeed, this.cameraHighestSpeed);
+            this.cameraSpeed = speed;
+        }
+        if (scene_id === 4) {
+            let speed = map(time, 120, 138, this.cameraHighestSpeed, 0.0);
+            this.cameraSpeed = speed;
+        }
+    }
+
+    _handleDisplacement(scene_id, time){
+        // in the last scene the camera slows down
+        if (scene_id === 2) {
+            let disp = map(time, 49, 65, 0.0, 10.0);
+            this.material.uniforms.displacement.value = disp;
+        }
+    }
+
+
 
     //remove this method once the setting is done
     cameraHelper(cameraSpeed, cameraHeight){
@@ -72,8 +118,9 @@ export default class Scenography {
 
     _implementScene(scene_id){
         let scene = this.scenes[scene_id];
-        console.log(scene);
+        //console.log(scene);
         if(scene.displacement){
+            debugger;
             this.material.uniforms.displacement.value = scene.displacement;
         }
 
@@ -89,6 +136,11 @@ export default class Scenography {
             this.material.uniforms.maxColor.value = scene.maxColor;
         }
 
+        if(scene.selectedBin){
+            this.setSelectedBin(scene.selectedBin);
+        }
+
+
         if(scene.minColor){
             this.material.uniforms.minColor.value = scene.minColor;
         }
@@ -96,7 +148,6 @@ export default class Scenography {
         if(scene.amplitude){
             this.material.uniforms.amplitude.value = scene.amplitude;
         }
-
 
         if(scene.cameraHeight){
             this.cameraHeight = scene.cameraHeight;
@@ -120,19 +171,21 @@ export default class Scenography {
             return 1;
         } else if (time_in_seconds > 49 && time_in_seconds <=95) {
             return 2;
-        } else if (time_in_seconds > 95 && time_in_seconds < 120) {
+        } else if (time_in_seconds > 95 && time_in_seconds <= 120) {
             return 3;
-        }else {
+        } else if (time_in_seconds >120 && time_in_seconds < 138) {
             return 4;
+        }else{
+            return 5;
         }
     }
 
     _populateScenes(){
         //walk slow in BN
         let black = {
-            cameraHeight:27,
-            cameraSpeed:0.0001,
-            selectedBin: 7.0,
+            cameraHeight:this.cameraLowest,
+            cameraSpeed:this.cameraLowestSpeed,
+            selectedBin: 7,
             amplitude:0.0,
             maxColor:0.9,
             minColor: 0.6,
@@ -145,7 +198,7 @@ export default class Scenography {
         let intro = {
             cameraHeight:this.cameraLowest,
             cameraSpeed:0.0001,
-            selectedBin: 7.0,
+            selectedBin: 12,
             amplitude:0.0,
             maxColor:0.9,
             minColor: 0.6,
@@ -156,15 +209,14 @@ export default class Scenography {
         //enter color, run faster
         let middle = {
             cameraHeight:this.cameraLowest,
-            cameraSpeed:0.0009,
-            amplitude:4.0,
+            amplitude:0.0,
             selectedBin: 15,
             speed: 0.005,
             maxColor:0.72,
             minColor: 0.46,
             saturation: 0.9,
             brightness: 0.5,
-            displacement: 0.6,
+            displacement: 0.9,
             followPath: true
         };
         //fly into leaves
@@ -175,7 +227,6 @@ export default class Scenography {
             maxColor:0.53,
             minColor: 0.01,
             saturation: 0.78,
-            brightness: 0.61,
             cameraHeight: this.cameraHighest,
             followPath: true
         };
@@ -185,12 +236,16 @@ export default class Scenography {
             amplitude:4.0,
             cameraHeight:this.cameraLowest,
             cameraSpeed:0.0001,
-            cameraSpeed:0.0008,
             selectedBin: 19,
             followPath: true
         };
 
-        return [black, intro, middle, end, last];
+        let stop ={
+            followPath:false,
+            brightness:0.0
+        };
+
+        return [black, intro, middle, end, last, stop];
     }
 
 }

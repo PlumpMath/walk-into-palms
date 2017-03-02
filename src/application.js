@@ -99,13 +99,14 @@ function init(){
     render();
 }
 
-function passAudioToMaterial(values){
+function passAudioToMaterial(values, n_bin){
     let magAudio;
 		for (var i = 0, len = values.length; i < len; i++){
 				var fftVal = values[i] / 255;
         fftVal = fftVal === 0 ? 0.05 : fftVal;
         fftVal = fftVal;
-        if (i === gui.params.selectedBin) {
+        //if (i === gui.params.selectedBin) {
+        if (i === n_bin) {
             magAudio = fftVal;
         }
 		}
@@ -125,7 +126,8 @@ function render(){
     //scenography.cameraHelper(gui.params.cameraSpeed, gui.params.cameraHeight);
     pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
-    passAudioToMaterial(fft.analyse());
+    let bin = scenography.getSelectedBin();
+    passAudioToMaterial(fft.analyse(),bin);
     stats.end();
 	  requestAnimationFrame(render);
 }

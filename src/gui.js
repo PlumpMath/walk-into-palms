@@ -16,7 +16,7 @@ export default class Gui extends DAT.GUI{
             minColor:0.2,
             maxColor:0.4,
             saturation: 0.2,
-            brightness: 0.2,
+            brightness: 0.0,
             displacement:0.9,
             selectedBin:0
         };

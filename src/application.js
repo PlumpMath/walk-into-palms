@@ -23,14 +23,14 @@ var curveDensity = 600; // how many points define the path
 //curve
 let t = 0;
 const radius = 200;
-const radius_offset = 120;
+const radius_offset = 80;
 
 // objects
 const poolSize = 22;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
-let palmMaterial;
+let palmMaterial = getMaterial();
 
 // AUDIO
 let fftSize=32;
@@ -39,12 +39,23 @@ var fft = new Tone.Analyser("fft", fftSize);
 let player = new Tone.Player("../Adventura.mp3").fan(fft).toMaster();
 player.autostart = true;
 player.loop = false;
+
 var loadedAudio = new Promise(function(done){
 		Tone.Buffer.on("load", done);
 });
 
+let makePool = new Promise( (resolve, reject) => {
+    resolve( prepareGeometry());
+});
 
-loadedAudio.then(init());
+function prepareGeometry(){
+    spline = createPath(radius, radius_offset);
+    scene = new THREE.Scene();
+    pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, palmMaterial);
+    return pool;
+}
+
+makePool.then(loadedAudio.then(init()));
 
 function init(){
     var clock = new Tone.Clock(function(time){
@@ -53,10 +64,8 @@ function init(){
     clock.start(0.0);
     current_time = 0;
 
-    palmMaterial = getMaterial();
     gui = new Gui(palmMaterial);
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(95, window.innerWidth / window.innerHeight, 0.3, 400);
+    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 400);
 
     renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -66,7 +75,6 @@ function init(){
     controls = new OrbitControls(camera, renderer.domElement);
 
     //scenography
-    spline = createPath(radius, radius_offset);
     scenography = new Scenography(camera, spline, t, gui.params.cameraHeight, gui.params.cameraSpeed, palmMaterial);
 
     //stats
@@ -74,7 +82,6 @@ function init(){
     stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 
     //palms
-    pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, palmMaterial);
 
     //lights
     let ambientLight = new THREE.AmbientLight( 0x000000 );

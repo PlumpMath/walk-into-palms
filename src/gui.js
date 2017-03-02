@@ -26,8 +26,8 @@ export default class Gui extends DAT.GUI{
         this.add(this.params, 'cameraSpeed', 0.0001, 0.0012).step(0.0001);
         this.add(this.params, 'amplitude', 0.0, 15.0).step(0.1).onChange(this._onAmplitudeUpdate(this.material));
         this.add(this.params, 'selectedBin', 0, 32).step(1);
-        this.add(this.params, 'minColor', 0.01, 1.0).step(0.01).onChange(this._onMinColorUpdate(this.material));
-        this.add(this.params, 'maxColor', 0.01, 1.0).step(0.01).onChange(this._onMaxColorUpdate(this.material));
+        this.add(this.params, 'minColor', 0.00, 1.0).step(0.01).onChange(this._onMinColorUpdate(this.material));
+        this.add(this.params, 'maxColor', 0.00, 1.0).step(0.01).onChange(this._onMaxColorUpdate(this.material));
         this.add(this.params, 'saturation', 0.01, 1.0).step(0.01).onChange(this._onSaturationUpdate(this.material));
         this.add(this.params, 'brightness', 0.01, 1.0).step(0.01).onChange(this._onBrightnessUpdate(this.material));
         this.add(this.params, 'displacement', 0.0, 10.0).step(0.01).onChange(this._onDisplacementUpdate(this.material));;
@@ -120,7 +120,6 @@ export default class Gui extends DAT.GUI{
 
     _onAmplitudeUpdate(material) {
 	      return function ( value ){
-            console.log(value);
             material.uniforms.amplitude.value = value;
         };
     }

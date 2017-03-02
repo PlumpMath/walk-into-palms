@@ -1,5 +1,5 @@
 import {BoxBufferGeometry, Mesh, Vector3} from 'three';
-import {getRandom, getRandomInt} from './random.js';
+import {getRandom, getRandomInt} from './helpers.js';
 import Palms from './palms.js';
 export default class Pool {
     constructor(size, scene, curve, percent_covered, distance_from_path, material){
@@ -56,28 +56,12 @@ export default class Pool {
         let palms = new Palms(); //this return some different palms, one for each type
         //let randomIndex = getRandomInt(0, (palms.length));
         let randomIndex = getRandomInt(0,5);
-        //let randomIndex = 5;
+        //let randomIndex = 3;
         let palm = palms[randomIndex];
         let mesh = new Mesh(palm, this.material);
-        // let scaleSmall = 0.5;
-        // let scaleMedium = 0.8;
-        // if (this.smallPalms().includes(randomIndex)){
-        //     mesh.scale.set(scaleSmall, scaleSmall, scaleSmall);
-        // }
-        // if (this.mediumPalms().includes(randomIndex)){
-        //     mesh.scale.set(scaleMedium, scaleMedium, scaleMedium);
-        // }
         mesh.rotateY(Math.PI / getRandom(-3, 3));
 
         return mesh;
-    }
-
-    smallPalms(){
-        return[1,4];
-    }
-
-    mediumPalms(){
-        return[3,5];
     }
 
     update(camera_position_on_spline){

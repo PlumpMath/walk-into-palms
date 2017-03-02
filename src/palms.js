@@ -174,15 +174,15 @@ export default class Palms{
         ] );
 
         let curve_sigaro = new CatmullRomCurve3( [
-            new Vector3( -10, 60, -10 ),
-            new Vector3( -10, 35, -10 ),
+            new Vector3( -10, 50, -10 ),
+            new Vector3( -10, 30, -10 ),
             new Vector3( -5, 10, 0 ),
             new Vector3( 0, 0, 0 ),
         ] );
         let curve_bella = new CatmullRomCurve3( [
-            new Vector3( -20, 160, -20 ),
-            new Vector3( -10, 140, -20 ),
-            new Vector3( 0, 100, 0 ),
+            new Vector3( -20, 120, -20 ),
+            new Vector3( -10, 100, -20 ),
+            new Vector3( 0, 60, 0 ),
             new Vector3( 0, 0, 0 ),
         ] );
         let curve_cardo = new CatmullRomCurve3( [

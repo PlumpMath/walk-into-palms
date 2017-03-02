@@ -10,6 +10,8 @@ export default class Gui extends DAT.GUI{
             }
         );
         this.params = {
+            cameraHeight:80,
+            cameraSpeed: 0.0008,
             amplitude: 3.5,
             minColor:0.2,
             maxColor:0.4,
@@ -20,6 +22,8 @@ export default class Gui extends DAT.GUI{
         };
         this.material = material;
 
+        this.add(this.params, 'cameraHeight', 20, 190).step(1);
+        this.add(this.params, 'cameraSpeed', 0.0001, 0.0012).step(0.0001);
         this.add(this.params, 'amplitude', 0.0, 15.0).step(0.1).onChange(this._onAmplitudeUpdate(this.material));
         this.add(this.params, 'selectedBin', 0, 32).step(1);
         this.add(this.params, 'minColor', 0.01, 1.0).step(0.01).onChange(this._onMinColorUpdate(this.material));

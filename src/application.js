@@ -17,11 +17,8 @@ const debug = true;
 let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time;
 
 //camera
-var cameraSpeedDefault = 0.0008;
-var cameraSpeed = cameraSpeedDefault;
 var cameraZposition = 100;
 var curveDensity = 600; // how many points define the path
-var cameraHeight = 40; // how high is the camera on the y axis
 
 //curve
 let t = 0;
@@ -41,7 +38,7 @@ var fft = new Tone.Analyser("fft", fftSize);
 // check property "smoothing", it does the decayRate I thinnk
 let player = new Tone.Player("../Adventura.mp3").fan(fft).toMaster();
 player.autostart = true;
-player.loop = true;
+player.loop = false;
 var loadedAudio = new Promise(function(done){
 		Tone.Buffer.on("load", done);
 });
@@ -65,12 +62,12 @@ function init(){
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.style.margin =0;
     document.body.appendChild(renderer.domElement);
-    camera.position.z = cameraHeight;
+    camera.position.z = gui.params.cameraHeight;
     controls = new OrbitControls(camera, renderer.domElement);
 
     //scenography
     spline = createPath(radius, radius_offset);
-    scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial);
+    scenography = new Scenography(camera, spline, t, gui.params.cameraHeight, gui.params.cameraSpeed, palmMaterial);
 
     //stats
     stats = new Stats();
@@ -125,6 +122,7 @@ function render(){
     palmMaterial.uniforms.brightness.needUpdate = true;
     palmMaterial.uniforms.displacement.needUpdate = true;
     scenography.update(current_time);
+    //scenography.cameraHelper(gui.params.cameraSpeed, gui.params.cameraHeight);
     pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
     passAudioToMaterial(fft.analyse());
@@ -162,10 +160,10 @@ function getMaterial(){
         magAudio: {value: 0.0},
         amplitude: {value: 0.0},
         displacement: {value: 0.0},
-        minColor: {value: 0.2},
-        maxColor: {value: 0.4},
+        minColor: {value: 0.6},
+        maxColor: {value: 0.9},
         saturation: {value: 0.2},
-        brightness: {value: 0.2},
+        brightness: {value: 0.0},
         color: {type: "c", value: new THREE.Color( 0xff3322 )},
 		    uResolution: { value: screenResolution }
 	  };

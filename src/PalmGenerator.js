@@ -21,7 +21,8 @@ export default class PalmGenerator{
             buffers = this._createBuffers(hash_vertex_info.tot_vertices);
             objects = this._buildPalm(leaf_geometry,
                                       trunk_geometry,
-                                      cleaned_options);
+                                      cleaned_options,
+                                      curve);
             geometry = this._mergeObjectsInOneGeometryAndFullfilBuffers(objects,
                                                                            cleaned_options,
                                                                            hash_vertex_info,
@@ -110,6 +111,7 @@ export default class PalmGenerator{
             let isALeaf = (i <= options.foliage_start_at)? true : false;
             let geometry = isALeaf ? foliage_geometry : trunk_geometry;
             let object = new THREE.Mesh(geometry, material);
+            object.angle = (options.angle * i ) % 256;
             let coord = phyllotaxisOnCurve(i, angleInRadians, options.spread, curve_geometry);
             object.position.set(coord.x, coord.y, coord.z);
             object.lookAt(coord.prev);

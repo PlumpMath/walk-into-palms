@@ -21,15 +21,15 @@ var cameraSpeedDefault = 0.0008;
 var cameraSpeed = cameraSpeedDefault;
 var cameraZposition = 100;
 var curveDensity = 600; // how many points define the path
-var cameraHeight = 70; // how high is the camera on the y axis
+var cameraHeight = 40; // how high is the camera on the y axis
 
 //curve
 let t = 0;
 const radius = 200;
-const radius_offset = 150;
+const radius_offset = 120;
 
 // objects
-const poolSize = 12;
+const poolSize = 22;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
@@ -59,7 +59,7 @@ function init(){
     palmMaterial = getMaterial();
     gui = new Gui(palmMaterial);
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(95, window.innerWidth / window.innerHeight, 0.3, 400);
 
     renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);

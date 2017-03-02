@@ -99,6 +99,7 @@ export default class Scenography {
 
     _populateScenes(){
         let intro = {
+            cameraHeight:20,
             selectedBin: 7.0,
             amplitude:7.0,
             maxColor:0.9,
@@ -113,8 +114,8 @@ export default class Scenography {
             amplitude:7.0,
             selectedBin: 22,
             speed: 0.005,
-            maxColor:1.0,
-            minColor: 0.75,
+            maxColor:0.72,
+            minColor: 0.46,
             saturation: 0.9,
             brightness: 0.5,
             followPath: true
@@ -128,6 +129,7 @@ export default class Scenography {
             minColor: 0.01,
             saturation: 0.78,
             brightness: 0.61,
+            cameraHeight: 120,
             cameraPos:{x:802.134170585785, y:154.09441190059349, z:260.62919104477186}
         };
 

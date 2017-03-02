@@ -1,4 +1,5 @@
-import {BoxBufferGeometry, Mesh, Vector3 } from 'three';
+import {BoxBufferGeometry, Mesh, Vector3} from 'three';
+import {getRandom, getRandomInt} from './random.js';
 import Palms from './palms.js';
 export default class Pool {
     constructor(size, scene, curve, percent_covered, distance_from_path, material){
@@ -53,9 +54,30 @@ export default class Pool {
 
     createObject(){
         let palms = new Palms(); //this return some different palms, one for each type
-        let palm = palms[this.getRandomInt(0, (palms.length))];
+        //let randomIndex = getRandomInt(0, (palms.length));
+        let randomIndex = getRandomInt(0,5);
+        //let randomIndex = 5;
+        let palm = palms[randomIndex];
         let mesh = new Mesh(palm, this.material);
+        // let scaleSmall = 0.5;
+        // let scaleMedium = 0.8;
+        // if (this.smallPalms().includes(randomIndex)){
+        //     mesh.scale.set(scaleSmall, scaleSmall, scaleSmall);
+        // }
+        // if (this.mediumPalms().includes(randomIndex)){
+        //     mesh.scale.set(scaleMedium, scaleMedium, scaleMedium);
+        // }
+        mesh.rotateY(Math.PI / getRandom(-3, 3));
+
         return mesh;
+    }
+
+    smallPalms(){
+        return[1,4];
+    }
+
+    mediumPalms(){
+        return[3,5];
     }
 
     update(camera_position_on_spline){
@@ -66,7 +88,8 @@ export default class Pool {
             let object_position = this.index_positions[i];
             let horizon = camera_position_on_spline + this.percent_covered;
             flip_direction = !flip_direction;
-            if (object_position < camera_position_on_spline) {
+            let delay = 0.05;// otherwise object will disapear instanaely
+            if (object_position+delay < camera_position_on_spline) {
                 // this condition handles the case when you are at postion 9.5 in the curve
                 //and you have still to be able to see the palms in position 0.1
                 if (horizon >= 1.0){
@@ -110,10 +133,4 @@ export default class Pool {
         object.position.set(new_pos.x, new_pos.y, new_pos.z);
 
     }
-    getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min)) + min;
-    }
-
 }

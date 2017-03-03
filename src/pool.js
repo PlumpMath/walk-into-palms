@@ -78,7 +78,7 @@ export default class Pool {
                 //and you have still to be able to see the palms in position 0.1
                 if (horizon >= 1.0){
                     horizon = horizon - 1.0;
-                    if (object_position > horizon){
+                    if (object_position+delay > horizon){
                         this.putObjectForwardTheCamera(camera_position_on_spline, i, flip_direction);
                     }
                 } else {

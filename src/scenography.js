@@ -3,6 +3,7 @@ import {map} from './helpers.js';
 export default class Scenography {
     constructor(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial){
         this.selectedBin = 0;
+        this.kopfhoch = 0;
         this.cameraLowestSpeed = 0.0001;
         this.cameraHighestSpeed = 0.0004;
         this.cameraHighest = 120;
@@ -26,14 +27,14 @@ export default class Scenography {
     }
 
     update(time_in_seconds){
-        //console.log(time_in_seconds);
+        console.log(time_in_seconds);
         // console.log(this.material.uniforms.brightness.value);
         let current_schedule = this._schedule(time_in_seconds);
         this._handleBlackAndWhite(current_schedule,time_in_seconds);
         this._handleCameraPosition(current_schedule,time_in_seconds);
         this._handleCameraSpeed(current_schedule,time_in_seconds);
         this._handleDisplacement(current_schedule,time_in_seconds);
-        //this._handleColorPalette(current_schedule,time_in_seconds);
+        this._handleColorPalette(current_schedule,time_in_seconds);
         if (current_schedule !== this.current_index_scene) {
             console.log("Imp scene "+ current_schedule);
             this.current_index_scene = current_schedule;
@@ -52,7 +53,7 @@ export default class Scenography {
         }
 
         // in the last scene the color goes back to black and white
-        if (scene_id === 4) {
+        if (scene_id === 5) {
             let bright = map(time, 120, 138, maxBrightness, 0.0);
             this.material.uniforms.brightness.value = bright;
         }
@@ -68,19 +69,19 @@ export default class Scenography {
 
     _handleCameraSpeed(scene_id, time){
         // in the last scene the camera slows down
-        if (scene_id === 2) {
+        if (scene_id === 2 || scene_id === 3) {
             let speed = map(time, 49, 95, this.cameraLowestSpeed, this.cameraHighestSpeed);
             this.cameraSpeed = speed;
         }
-        if (scene_id === 4 || scene_id === 3) {
-            let speed = map(time, 97, 138, this.cameraHighestSpeed, 0.0);
+        if (scene_id === 4) {
+            let speed = map(time, 95, 120, this.cameraHighestSpeed, this.cameraLowestSpeed);
             this.cameraSpeed = speed;
         }
     }
 
     _handleDisplacement(scene_id, time){
         // in the last scene the camera slows down
-        if (scene_id === 2) {
+        if (scene_id === 2 || scene_id === 3) {
             let disp = map(time, 49, 65, 0.0, 6.0);
             this.material.uniforms.displacement.value = disp;
         }
@@ -88,7 +89,7 @@ export default class Scenography {
 
     _handleColorPalette(scene_id, time){
         // scene 3 goes from 95 to 120
-        if(scene_id === 3){
+        if(scene_id === 4){
             if(time > 95 && time <= 103) {
                 this._changePalette(0.4, 0.6);
             } else if(time > 103 && time <= 111) {
@@ -128,7 +129,7 @@ export default class Scenography {
         var next = this.t + this.cameraSpeed * 20;
         var lookAtPoint = (next > 1) ? 0 : next;
         var look = this.spline.getPoint(lookAtPoint);
-        look.y = this.cameraHeight;
+        look.y = this.cameraHeight + this.kopfhoch;
         this.camera.lookAt(look);
 
         var limit = 1 - this.cameraSpeed;
@@ -140,6 +141,14 @@ export default class Scenography {
         //console.log(scene);
         if(scene.hasOwnProperty("displacement")){
             this.material.uniforms.displacement.value = scene.displacement;
+        }
+
+        if(scene.hasOwnProperty("kopfhoch")){
+            if(scene.kopfhoch){
+                this.kopfhoch = 6.0;
+            }else{
+                this.kopfhoch = 0.0;
+            }
         }
 
         if(scene.hasOwnProperty("brightness")){
@@ -183,18 +192,20 @@ export default class Scenography {
     }
 
     _schedule(time_in_seconds){
-        if (time_in_seconds <25 && time_in_seconds >=0) {
+        if (time_in_seconds >= 0 && time_in_seconds <= 25) {
             return 0;
-        } else if (time_in_seconds <=49 && time_in_seconds >=0) {
+        } else if (time_in_seconds > 25 && time_in_seconds <= 49) {
             return 1;
-        } else if (time_in_seconds > 49 && time_in_seconds <=95) {
+        } else if (time_in_seconds > 49 && time_in_seconds <=73) {
             return 2;
-        } else if (time_in_seconds > 95 && time_in_seconds <= 120) {
+        } else if (time_in_seconds > 73 && time_in_seconds <=95) {
             return 3;
-        } else if (time_in_seconds >120 && time_in_seconds < 138) {
+        } else if (time_in_seconds > 95 && time_in_seconds <= 120) {
             return 4;
-        }else{
+        } else if (time_in_seconds >120 && time_in_seconds < 138) {
             return 5;
+        }else{
+            return 6;
         }
     }
 
@@ -235,8 +246,14 @@ export default class Scenography {
             saturation: 0.9,
             followPath: true
         };
+        let lookUp = {
+            kopfhoch:true,
+            followPath: true
+        };
+
         //fly into leaves
         let end = {
+            kopfhoch:false,
             selectedBin: 19,
             amplitude:3.0,
             followPath: false,
@@ -252,7 +269,6 @@ export default class Scenography {
         let last = {
             amplitude:4.0,
             cameraHeight:this.cameraLowest,
-            cameraSpeed:this.cameraLowestSpeed,
             selectedBin: 19,
             followPath: true
         };
@@ -262,7 +278,7 @@ export default class Scenography {
             brightness:0.0
         };
 
-        return [black, intro, middle, end, last, stop];
+        return [black, intro, middle, lookUp, end, last, stop];
     }
 
 }

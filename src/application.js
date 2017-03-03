@@ -13,12 +13,15 @@ import {fragmentShader, vertexShader} from './shaders.js';
 const OrbitControls = require('three-orbit-controls')(THREE);
 import {PointLights} from './pointLights.js';
 
-const debug = true;
-let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time;
+const debug = false;
+let isPlay =false;
+let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time, clock;
 let palmMaterial;
 
 //camera
-var cameraZposition = 100;
+let cameraZposition = 100;
+let cameraHeight = 27;
+let cameraSpeed = 0.0001;
 var curveDensity = 600; // how many points define the path
 
 //curve
@@ -37,7 +40,7 @@ let fftSize=32;
 var fft = new Tone.Analyser("fft", fftSize);
 // check property "smoothing", it does the decayRate I thinnk
 let player = new Tone.Player("../Adventura.mp3").fan(fft).toMaster();
-player.autostart = true;
+//player.autostart = true;
 player.loop = false;
 
 var loadedAudio = new Promise(function(done){
@@ -51,7 +54,7 @@ let makePool = new Promise( (resolve, reject) => {
 function prepareGeometry(){
     spline = createPath(radius, radius_offset);
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2( 0x824938, 0.008 );
+    scene.fog = new THREE.FogExp2( 0x000000, 0.008 );
     palmMaterial = getMaterial(scene.fog);
     pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, palmMaterial);
     return pool;
@@ -60,24 +63,23 @@ function prepareGeometry(){
 makePool.then(loadedAudio.then(init()));
 
 function init(){
-    var clock = new Tone.Clock(function(time){
+    clock = new Tone.Clock(function(time){
         maybeChangeScene(time);
     }, 1);
-    clock.start(0.0);
     current_time = 0;
 
-    gui = new Gui(palmMaterial);
     camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 400);
 
     renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.style.margin =0;
     document.body.appendChild(renderer.domElement);
-    camera.position.z = gui.params.cameraHeight;
+
+    addPlayButton();
     controls = new OrbitControls(camera, renderer.domElement);
 
     //scenography
-    scenography = new Scenography(camera, spline, t, gui.params.cameraHeight, gui.params.cameraSpeed, palmMaterial);
+    scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial);
 
     //stats
     stats = new Stats();
@@ -88,7 +90,12 @@ function init(){
     //lights
     let ambientLight = new THREE.AmbientLight( 0x000000 );
     scene.add( ambientLight );
-    gui.addScene(scene, ambientLight, renderer);
+
+    if(!debug){
+        gui = new Gui(palmMaterial);
+        gui.toggleHide();
+        gui.addScene(scene, ambientLight, renderer);
+    }
 
     PointLights().map((light) => {
         scene.add( light );
@@ -101,7 +108,6 @@ function init(){
         camera.aspect = WIDTH / HEIGHT;
         camera.updateProjectionMatrix();
     });
-
     addStats(debug);
     addAxis(debug);
     addPathToScene(scene, spline);
@@ -114,7 +120,6 @@ function passAudioToMaterial(values, n_bin){
 				var fftVal = values[i] / 255;
         fftVal = fftVal === 0 ? 0.05 : fftVal;
         fftVal = fftVal;
-        //if (i === gui.params.selectedBin) {
         if (i === n_bin) {
             magAudio = fftVal;
         }
@@ -131,7 +136,9 @@ function render(){
     palmMaterial.uniforms.saturation.needUpdate = true;
     palmMaterial.uniforms.brightness.needUpdate = true;
     palmMaterial.uniforms.displacement.needUpdate = true;
-    scenography.update(current_time);
+    if(isPlay){
+        scenography.update(current_time);
+    }
     pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
     let bin = scenography.getSelectedBin();
@@ -162,6 +169,25 @@ function addStats(debug) {
         document.body.appendChild(stats.domElement);
     }
 }
+
+function addPlayButton(){
+    var div = document.createElement("div");
+    div.setAttribute("id", "startButton");
+    div.style.cssText = "position:fixed;height:64px;width:64px;z-index:10000;top:48%;left:48%;background-image:url(../Play.svg)";
+    div.onclick = function () {
+        isPlay = true;
+        player.start();
+        clock.start(0.0);
+        var elem = document.getElementById("startButton");
+        return elem.parentNode.removeChild(elem);
+    };
+    //div.onclick = startDemo;
+    document.body.appendChild(div);
+}
+
+var startDemo = function(){
+    console.log("wtf");
+};
 
 function getMaterial(fog){
     let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);

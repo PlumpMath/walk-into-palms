@@ -1,5 +1,5 @@
 import DAT from 'dat-gui';
-import {Color, Fog} from 'THREE';
+import {Color, Fog} from 'three';
 
 export default class Gui extends DAT.GUI{
     constructor(material){
@@ -32,6 +32,10 @@ export default class Gui extends DAT.GUI{
         this.add(this.params, 'brightness', 0.01, 1.0).step(0.01).onChange(this._onBrightnessUpdate(this.material));
         this.add(this.params, 'displacement', 0.0, 10.0).step(0.01).onChange(this._onDisplacementUpdate(this.material));;
 
+    }
+
+    toggleHide(){
+        DAT.GUI.toggleHide();
     }
 
     addMaterial(material){

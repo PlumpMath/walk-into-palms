@@ -124,7 +124,11 @@ export default class PalmGenerator{
             } else {
                 object.lookAt(coord.prev);
                 object.rotateZ(i* angleInRadians);
-                object.rotateY((90 + options.angle_open + i * 100/options.num ) * -PItoDeg);
+                if(options.trunk_regular){
+                    object.rotateY( (90 + options.angle_open ) * -PItoDeg );
+                }else{
+                    object.rotateY( (90 + options.angle_open + i * 100/options.num ) * -PItoDeg );
+                }
             }
             objects.push(object);
         }

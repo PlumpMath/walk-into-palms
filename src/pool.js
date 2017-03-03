@@ -13,6 +13,7 @@ export default class Pool {
         this.step = this.percent_covered / this.size;
         this.material = material;
 
+        this.palmTypes = new Palms(); //this return some different palms, one for each type
         this.populatePool();
     }
 
@@ -23,7 +24,7 @@ export default class Pool {
             tot_lenght_steps += this.step;
             this.index_positions.push(tot_lenght_steps);
 
-            let obj = this.createObject();
+            let obj = this.createObject(i);
             obj.name = i;
             obj.position_on_curve = tot_lenght_steps;
             let point = this.curve.getPoint(tot_lenght_steps);
@@ -52,12 +53,12 @@ export default class Pool {
 
     }
 
-    createObject(){
-        let palms = new Palms(); //this return some different palms, one for each type
+    createObject(i){
         //let randomIndex = getRandomInt(0, (palms.length));
-        let randomIndex = getRandomInt(0,5);
-        //let randomIndex = 3;
-        let palm = palms[randomIndex];
+        let randomIndex = getRandomInt(0,6);
+        //let randomIndex = 5;
+        let index = i% this.palmTypes.length;
+        let palm = this.palmTypes[index];
         let mesh = new Mesh(palm, this.material);
         mesh.rotateY(Math.PI / getRandom(-3, 3));
 
@@ -72,7 +73,8 @@ export default class Pool {
             let object_position = this.index_positions[i];
             let horizon = camera_position_on_spline + this.percent_covered;
             flip_direction = !flip_direction;
-            let delay = 0.05;// otherwise object will disapear instanaely
+            let delay = 0.05;// otherwise object will disapear instanaely, and
+            //in case of trees with leaves does not look nice.
             if (object_position+delay < camera_position_on_spline) {
                 // this condition handles the case when you are at postion 9.5 in the curve
                 //and you have still to be able to see the palms in position 0.1

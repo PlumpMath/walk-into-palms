@@ -61,21 +61,12 @@ export default class Gui extends DAT.GUI{
 
     guiSceneFog ( folder, scene ) {
 	      let fogFolder = folder.addFolder('scene.fog');
-	      let fog = new Fog( 0x3f7b9d, 0, 60 );
+	      let fog = scene.fog;
 	      let data = {
 		        fog : {
-			          "THREE.Fog()" : false,
 			          "scene.fog.color" : fog.color.getHex()
 		        }
 	      };
-
-	      fogFolder.add( data.fog, 'THREE.Fog()' ).onChange( function ( useFog ) {
-		        if ( useFog ) {
-			          scene.fog = fog;
-		        } else {
-			          scene.fog = null;
-		        }
-	      } );
 	      fogFolder.addColor( data.fog, 'scene.fog.color').onChange( this._handleColorChange( fog.color ) );
     }
 

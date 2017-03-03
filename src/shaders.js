@@ -22,9 +22,14 @@ export function vertexShader(){
 
 export function fragmentShader(){
     let fs =
+        "#define LOG2 1.442695\n"+
+        "#define saturate(a) clamp( a, 0.0, 1.0 )\n"+
+        "#define whiteCompliment(a) ( 1.0 - saturate( a ) )\n"+
         "precision mediump float;\n"+
         // Comment this line to do not use the point light
         "varying vec3 vecNormal;\n"+
+        "uniform float fogDensity;\n"+
+        "uniform vec3 fogColor;\n"+
         "varying float fAngle;\n"+
         "varying vec4 vecPos;\n"+
         "uniform float magAudio;\n"+
@@ -78,7 +83,14 @@ export function fragmentShader(){
             "float angleToCol = clamp((fAngle+magAudio)/256.0, correctedMinColor, correctedMaxColor);\n"+ // questi due valori definiscono il range
             "vec3 angleHSBColor = vec3(angleToCol, saturation, brightness);\n"+
             "vec4 col = mix(vec4(hsb2rgb(angleHSBColor), 1.0), vec4(addedLights.rgb, 1.0), 0.2);\n"+
+
+        "#ifdef USE_FOG // only FogExp2 is implemented\n"+
+            "float depth = gl_FragCoord.z / gl_FragCoord.w;\n"+
+            "float fogFactor = whiteCompliment( exp2( - fogDensity * fogDensity * depth * depth * LOG2 ) );\n"+
+            "gl_FragColor.rgb = mix( col.rgb, fogColor, fogFactor );\n"+
+        "#else\n"+
             "gl_FragColor = col;\n"+
+        "#endif\n"+
         "}";
 
         return fs;

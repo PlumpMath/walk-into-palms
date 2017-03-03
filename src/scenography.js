@@ -1,7 +1,10 @@
 import {map} from './helpers.js';
+import {BoxGeometry, Mesh, MeshBasicMaterial} from 'three';
 
 export default class Scenography {
     constructor(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial){
+        this.debug = false;
+
         this.selectedBin = 0;
         this.kopfhoch = 0;
         this.cameraLowestSpeed = 0.0001;
@@ -16,6 +19,15 @@ export default class Scenography {
         this.cameraHeight = cameraHeight;
         this.cameraSpeed = cameraSpeed;
         this.scenes = this._populateScenes();
+
+        if (this.debug) {
+            let geom =  new BoxGeometry(5,5,5);
+            let mat = new MeshBasicMaterial();
+            let fakeCamera = new Mesh(geom, mat);
+            this.camera = fakeCamera;
+        } else {
+            this.camera = camera;
+        }
     }
 
     getSelectedBin(){
@@ -27,11 +39,8 @@ export default class Scenography {
     }
 
     update(time_in_seconds){
-        console.log(time_in_seconds);
-        // console.log(this.material.uniforms.brightness.value);
         let current_schedule = this._schedule(time_in_seconds);
         this._handleBlackAndWhite(current_schedule,time_in_seconds);
-        this._handleCameraPosition(current_schedule,time_in_seconds);
         this._handleCameraSpeed(current_schedule,time_in_seconds);
         this._handleDisplacement(current_schedule,time_in_seconds);
         this._handleColorPalette(current_schedule,time_in_seconds);
@@ -57,14 +66,6 @@ export default class Scenography {
             let bright = map(time, 120, 138, maxBrightness, 0.0);
             this.material.uniforms.brightness.value = bright;
         }
-    }
-
-    _handleCameraPosition(scene_id, time){
-        // in the last scene the camera goes back to the ground
-        // if (scene_id === 4 || scene_id === 3) {
-        //     let pos = map(time, 97, 138, this.cameraHighest, this.cameraLowest);
-        //     this.cameraHeight = pos;
-        // }
     }
 
     _handleCameraSpeed(scene_id, time){
@@ -103,13 +104,6 @@ export default class Scenography {
     _changePalette(min,max){
         this.material.uniforms.maxColor.value = max;
         this.material.uniforms.minColor.value = min;
-    }
-
-
-    //remove this method once the setting is done
-    cameraHelper(cameraSpeed, cameraHeight){
-        this.cameraSpeed = cameraSpeed;
-        this.cameraHeight = cameraHeight;
     }
 
     _maybeMoveCamera(scene_id){

@@ -15,6 +15,7 @@ import {PointLights} from './pointLights.js';
 
 const debug = true;
 let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time;
+let palmMaterial;
 
 //camera
 var cameraZposition = 100;
@@ -30,7 +31,6 @@ const poolSize = 22;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
-let palmMaterial = getMaterial();
 
 // AUDIO
 let fftSize=32;
@@ -51,6 +51,8 @@ let makePool = new Promise( (resolve, reject) => {
 function prepareGeometry(){
     spline = createPath(radius, radius_offset);
     scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2( 0x824938, 0.008 );
+    palmMaterial = getMaterial(scene.fog);
     pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, palmMaterial);
     return pool;
 }
@@ -130,7 +132,6 @@ function render(){
     palmMaterial.uniforms.brightness.needUpdate = true;
     palmMaterial.uniforms.displacement.needUpdate = true;
     scenography.update(current_time);
-    //scenography.cameraHelper(gui.params.cameraSpeed, gui.params.cameraHeight);
     pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
     let bin = scenography.getSelectedBin();
@@ -162,7 +163,7 @@ function addStats(debug) {
     }
 }
 
-function getMaterial(){
+function getMaterial(fog){
     let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     let tmp_uniforms = {
 		    time: { value: 1.0 },
@@ -172,6 +173,8 @@ function getMaterial(){
         minColor: {value: 0.6},
         maxColor: {value: 0.9},
         saturation: {value: 0.2},
+        fogDensity: { type: "f", value: fog.density},
+        fogColor:   { type: "c", value: fog.color},
         brightness: {value: 0.0},
         color: {type: "c", value: new THREE.Color( 0xff3322 )},
 		    uResolution: { value: screenResolution }
@@ -183,6 +186,7 @@ function getMaterial(){
             tmp_uniforms
         ]),
         lights: true,
+        fog: true,
 	      vertexShader: vertexShader(),
 	      fragmentShader: fragmentShader()
 

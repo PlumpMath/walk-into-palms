@@ -5,10 +5,12 @@ import LeafGeometry from './LeafGeometry.js';
 export default class Palms{
     //questo file deve generare solo 2 o tre palme e restituirle in un array
     constructor(){
-        let n_palms = 5;
-        let trunkGeometry = new BoxGeometry(5,5,5);
+        this.smallTrunk =  new BoxGeometry(2,2,2);
+        this.trunkGeometry =  new BoxGeometry(5,5,5);
+        let n_palms = 6;
         let palms = [];
         for (let i =0; i< n_palms; i++){
+            let trunkGeometry = this._getTrunkGeometry(i);
             let leafGeometry = new LeafGeometry(this.leafOptions()[i]);
             let curve = this.getCurves()[i];
             let palm = new PalmGenerator(leafGeometry,
@@ -26,6 +28,15 @@ export default class Palms{
             palms.push(bufGeometry);
         }
         return palms;
+    }
+
+    _getTrunkGeometry(palm_type){
+        //if piccoletto and punta, small cubes
+        if([5,1].includes(palm_type)){
+            return this.smallTrunk;
+        }else{
+            return this.trunkGeometry;
+        }
     }
 
     leafOptions(){
@@ -86,7 +97,19 @@ export default class Palms{
             curvature_border: 0.004,
             leaf_inclination: 0.1
         };
-        return [leaf_one, piccoletto_leaf, leaf_cardo, leaf_bella, leaf_sigaro];
+        let punta_leaf = {
+            length: 24,
+            length_stem: 2,
+            width_stem: 0.3,
+            leaf_width: 0.5,
+            leaf_up: 1.5,
+            density: 18,
+            curvature: 0.01,
+            curvature_border: 0.002,
+            leaf_inclination: 1.0
+        };
+
+        return [leaf_one, piccoletto_leaf, leaf_cardo, leaf_bella, leaf_sigaro, punta_leaf];
     }
 
     palmOptions(){
@@ -102,10 +125,10 @@ export default class Palms{
             starting_angle_open: 51.65
         };
         let piccoletto = {
-            spread: 0.06,
+            spread: 0.03,
             angle: 137.14,
-            num: 120,
-            growth: 0.16,
+            num: 100,
+            growth: 0.2,
             buffers: true,
             foliage_start_at: 44,
             angle_open: 0,
@@ -116,12 +139,12 @@ export default class Palms{
         let cardo = {
             spread: 0,
             angle: 137.5,
-            num: 500,
-            growth: 0.24,
-            foliage_start_at: 21.12,
+            num: 240,
+            growth: 0.01,
+            foliage_start_at: 26.12,
             trunk_regular: true,
             buffers: true,
-            angle_open: 26.46,
+            angle_open: 36.46,
             starting_angle_open: 50
         };
         //la piu' bella
@@ -138,7 +161,7 @@ export default class Palms{
         };
 
         let sigaro = {
-            spread: 0.20,
+            spread: 0.05,
             angle: 137.5,
             num: 431,
             growth: 0.18,
@@ -149,8 +172,21 @@ export default class Palms{
             starting_angle_open: 50
         };
 
+        let punta = {
+            spread: 0.03,
+            angle: 137.14,
+            num: 100,
+            growth: 0.05,
+            buffers: true,
+            foliage_start_at: 44,
+            angle_open: 30,
+            starting_angle_open: 12,
+            trunk_regular: false
+        };
 
-        let options = [palm_one, piccoletto, cardo, bella, sigaro];
+
+
+        let options = [palm_one, piccoletto, cardo, bella, sigaro, punta];
         return options;
     }
 
@@ -174,9 +210,9 @@ export default class Palms{
         ] );
 
         let curve_sigaro = new CatmullRomCurve3( [
-            new Vector3( -10, 50, -10 ),
-            new Vector3( -10, 30, -10 ),
-            new Vector3( -5, 10, 0 ),
+            new Vector3( -7, 45, -7 ),
+            new Vector3( -7, 30, -7 ),
+            new Vector3( -2, 15, 0 ),
             new Vector3( 0, 0, 0 ),
         ] );
         let curve_bella = new CatmullRomCurve3( [
@@ -186,14 +222,16 @@ export default class Palms{
             new Vector3( 0, 0, 0 ),
         ] );
         let curve_cardo = new CatmullRomCurve3( [
-            new Vector3( 4, 70, 4 ),
-            new Vector3( 1, 50, 1 ),
-            new Vector3( -2, 40, -2 ),
-            new Vector3( -3, 20, 0 ),
+            new Vector3( 3, 60, 3 ),
+            new Vector3( 1, 45, 1 ),
+            new Vector3( -2, 30, -1 ),
+            new Vector3( -2, 15, 0 ),
             new Vector3( 0, 0, 0 ),
         ] );
 
-        return [curve_first, curve_piccoletto, curve_cardo, curve_bella,curve_sigaro];
+        let curve_punta = curve_piccoletto;
+
+        return [curve_first, curve_piccoletto, curve_cardo, curve_bella,curve_sigaro, curve_punta];
     }
 
 

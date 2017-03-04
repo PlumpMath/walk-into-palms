@@ -1,3 +1,1 @@
-npm install
-npm start
-npm build
+![example](cover.jpg)

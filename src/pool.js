@@ -35,11 +35,12 @@ export default class Pool {
             // there is no function to get the secant. I take the tangen and i rotate it
             let secantVector = tangentVector;
             secantVector.applyAxisAngle( axis, angle );
+            let position_offset = Math.sin(i) * 3;
             let new_pos;
             if (flip_direction) {
-                new_pos = point.add(secantVector);
+                new_pos = point.add(secantVector.addScalar(position_offset));
             }else{
-                new_pos = point.sub(secantVector);
+                new_pos = point.sub(secantVector.addScalar(position_offset));
             }
             obj.position.set(new_pos.x, new_pos.y, new_pos.z);
             this.container.push(obj);

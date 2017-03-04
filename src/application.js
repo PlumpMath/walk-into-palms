@@ -13,8 +13,7 @@ import {fragmentShader, vertexShader} from './shaders.js';
 const OrbitControls = require('three-orbit-controls')(THREE);
 import {PointLights} from './pointLights.js';
 
-const debug = false;
-let isPlay =false;
+const debug = true;
 let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time, clock;
 let palmMaterial;
 
@@ -30,7 +29,7 @@ const radius = 200;
 const radius_offset = 80;
 
 // objects
-const poolSize = 22;
+const poolSize = 28;
 const percent_covered = 0.2; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
@@ -51,6 +50,8 @@ let makePool = new Promise( (resolve, reject) => {
     resolve( prepareGeometry());
 });
 
+addPlayButton();
+
 function prepareGeometry(){
     spline = createPath(radius, radius_offset);
     scene = new THREE.Scene();
@@ -60,13 +61,14 @@ function prepareGeometry(){
     return pool;
 }
 
-makePool.then(loadedAudio.then(init()));
 
 function init(){
     clock = new Tone.Clock(function(time){
         maybeChangeScene(time);
     }, 1);
     current_time = 0;
+    player.start();
+    clock.start(0.0);
 
     camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 400);
 
@@ -75,7 +77,6 @@ function init(){
     document.body.style.margin =0;
     document.body.appendChild(renderer.domElement);
 
-    addPlayButton();
     controls = new OrbitControls(camera, renderer.domElement);
 
     //scenography
@@ -91,12 +92,6 @@ function init(){
     let ambientLight = new THREE.AmbientLight( 0x000000 );
     scene.add( ambientLight );
 
-    if(!debug){
-        gui = new Gui(palmMaterial);
-        gui.toggleHide();
-        gui.addScene(scene, ambientLight, renderer);
-    }
-
     PointLights().map((light) => {
         scene.add( light );
     });
@@ -108,6 +103,7 @@ function init(){
         camera.aspect = WIDTH / HEIGHT;
         camera.updateProjectionMatrix();
     });
+    addGui(debug. ambientLight);
     addStats(debug);
     addAxis(debug);
     addPathToScene(scene, spline);
@@ -136,9 +132,7 @@ function render(){
     palmMaterial.uniforms.saturation.needUpdate = true;
     palmMaterial.uniforms.brightness.needUpdate = true;
     palmMaterial.uniforms.displacement.needUpdate = true;
-    if(isPlay){
-        scenography.update(current_time);
-    }
+    scenography.update(current_time);
     pool.update(scenography.getCameraPositionOnSpline());
 	  renderer.render(scene, camera);
     let bin = scenography.getSelectedBin();
@@ -153,7 +147,7 @@ function addPathToScene(scene, curve){
     let material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
     // Create the final object to add to the scene
     let curveObject = new THREE.Line( geometry, material );
-    scene.add(curveObject);
+    //scene.add(curveObject);
 }
 
 
@@ -170,24 +164,24 @@ function addStats(debug) {
     }
 }
 
+function addGui(debug, ambientLight){
+    if(debug){
+        gui = new Gui(palmMaterial);
+        gui.addScene(scene, ambientLight, renderer);
+    }
+}
+
 function addPlayButton(){
     var div = document.createElement("div");
     div.setAttribute("id", "startButton");
     div.style.cssText = "position:fixed;height:64px;width:64px;z-index:10000;top:48%;left:48%;background-image:url(../Play.svg)";
     div.onclick = function () {
-        isPlay = true;
-        player.start();
-        clock.start(0.0);
+        makePool.then(loadedAudio.then(init()));
         var elem = document.getElementById("startButton");
         return elem.parentNode.removeChild(elem);
     };
-    //div.onclick = startDemo;
     document.body.appendChild(div);
 }
-
-var startDemo = function(){
-    console.log("wtf");
-};
 
 function getMaterial(fog){
     let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
@@ -205,7 +199,6 @@ function getMaterial(fog){
         color: {type: "c", value: new THREE.Color( 0xff3322 )},
 		    uResolution: { value: screenResolution }
 	  };
-    //console.log(vertexShader());
     let material = new THREE.ShaderMaterial( {
 	      uniforms: THREE.UniformsUtils.merge([
             THREE.UniformsLib['lights'],
@@ -217,7 +210,6 @@ function getMaterial(fog){
 	      fragmentShader: fragmentShader()
 
     } );
-    //console.log(material.vertexShader);
     return material;
 }
 

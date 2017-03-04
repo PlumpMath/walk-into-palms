@@ -105,7 +105,7 @@ function init(player){
         camera.aspect = WIDTH / HEIGHT;
         camera.updateProjectionMatrix();
     });
-    addGui(debug. ambientLight);
+    addGui(debug, ambientLight);
     addStats(debug);
     addAxis(debug);
     addPathToScene(scene, spline);

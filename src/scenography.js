@@ -39,7 +39,6 @@ export default class Scenography {
     }
 
     update(time_in_seconds){
-        console.log(time_in_seconds);
         let current_schedule = this._schedule(time_in_seconds);
         this._handleBlackAndWhite(current_schedule,time_in_seconds);
         this._handleCameraSpeed(current_schedule,time_in_seconds);

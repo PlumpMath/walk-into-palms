@@ -2,7 +2,6 @@
 import * as THREE from 'three';
 import $ from "jquery";
 import Tone from 'tone';
-
 import Gui from './gui.js';
 import Stats from 'stats.js';
 import {createPath} from './path.js';
@@ -13,7 +12,6 @@ import {fragmentShader, vertexShader} from './shaders.js';
 const OrbitControls = require('three-orbit-controls')(THREE);
 import {PointLights} from './pointLights.js';
 
-
 const debug = false;
 let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time, clock;
 let palmMaterial;
@@ -22,7 +20,7 @@ let palmMaterial;
 let cameraZposition = 100;
 let cameraHeight = 27;
 let cameraSpeed = 0.0001;
-var curveDensity = 600; // how many points define the path
+let curveDensity = 600; // how many points define the path
 
 //curve
 let t = 0;
@@ -38,7 +36,7 @@ const distance_from_path = 30;
 // AUDIO
 current_time = 0;
 let fftSize=32;
-var fft = new Tone.Analyser("fft", fftSize);
+let fft = new Tone.Analyser("fft", fftSize);
 function loadPlayer(url){
     return new Promise(function(resolve, reject){
         let player = new Tone.Player(url).fan(fft).toMaster();
@@ -71,6 +69,7 @@ let counter = () => {
 };
 
 function init(player){
+    removeLoadingButton();
     player.start();
     let timer = setInterval(counter, 1000);
     camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 400);
@@ -100,7 +99,7 @@ function init(player){
     });
 
     window.addEventListener('resize', function() {
-        var WIDTH = window.innerWidth,
+        let WIDTH = window.innerWidth,
             HEIGHT = window.innerHeight;
         renderer.setSize(WIDTH, HEIGHT);
         camera.aspect = WIDTH / HEIGHT;
@@ -115,8 +114,8 @@ function init(player){
 
 function passAudioToMaterial(values, n_bin){
     let magAudio;
-		for (var i = 0, len = values.length; i < len; i++){
-				var fftVal = values[i] / 255;
+		for (let i = 0, len = values.length; i < len; i++){
+				let fftVal = values[i] / 255;
         fftVal = fftVal === 0 ? 0.05 : fftVal;
         fftVal = fftVal;
         if (i === n_bin) {
@@ -156,7 +155,7 @@ function addPathToScene(scene, curve){
 
 function addAxis(debug){
     if (debug) {
-        var axisHelper = new THREE.AxisHelper( 50 );
+        let axisHelper = new THREE.AxisHelper( 50 );
         scene.add( axisHelper );
     }
 }
@@ -174,11 +173,26 @@ function addGui(debug, ambientLight){
     }
 }
 
+function addLoadingButton(){
+    let div = document.createElement("div");
+    div.setAttribute("id", "loadingButton");
+    div.style.cssText = "position:fixed;height:144px;width:144px;z-index:10000;top:48%;left:48%;background-image:url(../spinner.svg)";
+    document.body.appendChild(div);
+}
+
+function removeLoadingButton(){
+    let elem = document.getElementById("loadingButton");
+    if(elem){
+        elem.parentNode.removeChild(elem);
+    };
+}
+
 function addPlayButton(){
-    var div = document.createElement("div");
+    let div = document.createElement("div");
     div.setAttribute("id", "startButton");
     div.style.cssText = "position:fixed;height:64px;width:64px;z-index:10000;top:48%;left:48%;background-image:url(../Play.svg)";
     div.onclick = function () {
+        addLoadingButton();
         loadPlayer("../Adventura.mp3").then(
             function(player){
                 init(player);
@@ -186,7 +200,7 @@ function addPlayButton(){
             function(err){
                 console.log(err);
             });
-        var elem = document.getElementById("startButton");
+        let elem = document.getElementById("startButton");
         return elem.parentNode.removeChild(elem);
     };
     document.body.appendChild(div);

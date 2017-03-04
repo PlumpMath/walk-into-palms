@@ -13,7 +13,8 @@ import {fragmentShader, vertexShader} from './shaders.js';
 const OrbitControls = require('three-orbit-controls')(THREE);
 import {PointLights} from './pointLights.js';
 
-const debug = true;
+
+const debug = false;
 let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time, clock;
 let palmMaterial;
 
@@ -35,20 +36,24 @@ const percent_covered = 0.2; // it means that objects will be placed only in the
 const distance_from_path = 30;
 
 // AUDIO
+current_time = 0;
 let fftSize=32;
 var fft = new Tone.Analyser("fft", fftSize);
-// check property "smoothing", it does the decayRate I thinnk
-let player = new Tone.Player("../Adventura.mp3").fan(fft).toMaster();
-//player.autostart = true;
-player.loop = false;
-
-var loadedAudio = new Promise(function(done){
-		Tone.Buffer.on("load", done);
-});
-
-let makePool = new Promise( (resolve, reject) => {
-    resolve( prepareGeometry());
-});
+function loadPlayer(url){
+    return new Promise(function(resolve, reject){
+        let player = new Tone.Player(url).fan(fft).toMaster();
+        player.loop = false;
+        player.autstart = false;
+        Tone.Buffer.on("load", function(){
+            console.log("tutt");
+            //tutte cose
+            prepareGeometry();
+            resolve(player);
+        }, function(){
+            reject("smth went wrong");
+        });
+    });
+};
 
 addPlayButton();
 
@@ -61,15 +66,13 @@ function prepareGeometry(){
     return pool;
 }
 
+let counter = () => {
+    ++current_time;
+};
 
-function init(){
-    clock = new Tone.Clock(function(time){
-        maybeChangeScene(time);
-    }, 1);
-    current_time = 0;
+function init(player){
     player.start();
-    clock.start(0.0);
-
+    let timer = setInterval(counter, 1000);
     camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 400);
 
     renderer = new THREE.WebGLRenderer({antialias:true});
@@ -176,7 +179,13 @@ function addPlayButton(){
     div.setAttribute("id", "startButton");
     div.style.cssText = "position:fixed;height:64px;width:64px;z-index:10000;top:48%;left:48%;background-image:url(../Play.svg)";
     div.onclick = function () {
-        makePool.then(loadedAudio.then(init()));
+        loadPlayer("../Adventura.mp3").then(
+            function(player){
+                init(player);
+            },
+            function(err){
+                console.log(err);
+            });
         var elem = document.getElementById("startButton");
         return elem.parentNode.removeChild(elem);
     };

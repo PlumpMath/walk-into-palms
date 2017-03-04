@@ -261,7 +261,7 @@ export default class Scenography {
 
         //vertex displacement, slowly back to BN
         let last = {
-            amplitude:4.0,
+            amplitude:3.5,
             cameraHeight:this.cameraLowest,
             selectedBin: 19,
             followPath: true

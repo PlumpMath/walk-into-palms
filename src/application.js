@@ -107,7 +107,6 @@ function init(player){
     });
     addGui(debug, ambientLight);
     addStats(debug);
-    addAxis(debug);
     addPathToScene(scene, spline);
     render();
 }
@@ -152,14 +151,6 @@ function addPathToScene(scene, curve){
     //scene.add(curveObject);
 }
 
-
-function addAxis(debug){
-    if (debug) {
-        let axisHelper = new THREE.AxisHelper( 50 );
-        scene.add( axisHelper );
-    }
-}
-
 function addStats(debug) {
     if (debug) {
         document.body.appendChild(stats.domElement);
@@ -167,7 +158,7 @@ function addStats(debug) {
 }
 
 function addGui(debug, ambientLight){
-    if(debug){
+    if (debug) {
         gui = new Gui(palmMaterial);
         gui.addScene(scene, ambientLight, renderer);
     }
@@ -176,13 +167,13 @@ function addGui(debug, ambientLight){
 function addLoadingButton(){
     let div = document.createElement("div");
     div.setAttribute("id", "loadingButton");
-    div.style.cssText = "position:fixed;height:144px;width:144px;z-index:10000;top:48%;left:48%;background-image:url(../spinner.svg)";
+    div.style.cssText = "position:fixed;height:144px;width:144px;z-index:10000;top:44%;left:46%;background-image:url(../spinner.svg)";
     document.body.appendChild(div);
 }
 
 function removeLoadingButton(){
     let elem = document.getElementById("loadingButton");
-    if(elem){
+    if (elem) {
         elem.parentNode.removeChild(elem);
     };
 }
@@ -205,6 +196,7 @@ function addPlayButton(){
     };
     document.body.appendChild(div);
 }
+
 
 function getMaterial(fog){
     let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);

@@ -10,6 +10,9 @@ export default class Gui extends DAT.GUI{
             }
         );
         this.params = {
+            freq: 0.0005,
+            pathAmplitude: 0.2,
+            scattering: 11,
             cameraHeight:80,
             cameraSpeed: 0.0008,
             amplitude: 3.5,
@@ -22,6 +25,9 @@ export default class Gui extends DAT.GUI{
         };
         this.material = material;
 
+        this.add(this.params, 'freq',  0.000001,0.001).step(0.000005);
+        this.add(this.params, 'pathAmplitude',  0.1,9).step(0.2);
+        this.add(this.params, 'scattering',  3,300).step(1);
         this.add(this.params, 'cameraHeight', 20, 190).step(1);
         this.add(this.params, 'cameraSpeed', 0.0001, 0.0012).step(0.0001);
         this.add(this.params, 'amplitude', 0.0, 15.0).step(0.1).onChange(this._onAmplitudeUpdate(this.material));

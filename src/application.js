@@ -13,7 +13,7 @@ const OrbitControls = require('three-orbit-controls')(THREE);
 import {PointLights} from './pointLights.js';
 
 const debug = false;
-let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time, clock;
+let gui, scene, renderer, stats, pool, scenography, controls, camera, spline, current_time, clock, sprite;
 let palmMaterial;
 
 //camera
@@ -40,6 +40,7 @@ let fft = new Tone.Analyser("fft", fftSize);
 function loadPlayer(url){
     return new Promise(function(resolve, reject){
         let player = new Tone.Player(url).fan(fft).toMaster();
+        sprite = new THREE.TextureLoader().load( "../particle1.jpeg" );
         player.loop = false;
         player.autstart = false;
         Tone.Buffer.on("load", function(){
@@ -72,7 +73,7 @@ function init(player){
     removeLoadingButton();
     player.start();
     let timer = setInterval(counter, 1000);
-    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 400);
+    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 200);
 
     renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -83,12 +84,9 @@ function init(player){
 
     //scenography
     scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial);
-
     //stats
     stats = new Stats();
     stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
-
-    //palms
 
     //lights
     let ambientLight = new THREE.AmbientLight( 0x000000 );
@@ -106,8 +104,10 @@ function init(player){
         camera.updateProjectionMatrix();
     });
     addGui(debug, ambientLight);
+
+    addLightPath(spline, 0x00FF00);
     addStats(debug);
-    addPathToScene(scene, spline);
+    //addPathToScene(scene, spline);
     render();
 }
 
@@ -148,7 +148,7 @@ function addPathToScene(scene, curve){
     let material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
     // Create the final object to add to the scene
     let curveObject = new THREE.Line( geometry, material );
-    //scene.add(curveObject);
+    scene.add(curveObject);
 }
 
 function addStats(debug) {
@@ -226,6 +226,34 @@ function getMaterial(fog){
 
     } );
     return material;
+}
+
+function addLightPath( spline, color ) {
+    let radiusBuffGeom = 3;
+    let radiusSegmentBuffGeom =5;
+    let geom = new THREE.TubeGeometry( spline, 100, radiusBuffGeom, radiusSegmentBuffGeom, true );
+
+    let starsGeometry = new THREE.Geometry();
+    starsGeometry.vertices = geom.vertices;
+    for(let idx = 0; idx < starsGeometry.vertices.length; idx++){
+        let offset = Math.sin(idx);
+        let v0 = starsGeometry.vertices[idx];
+        v0.y += offset*3;
+        v0.x += offset*6;
+        v0.z += offset*6;
+    }
+
+    let starsMaterial = new THREE.PointsMaterial( {
+        color: 0xE0E0E0,
+				size: 10,
+        map:sprite,
+				blending: THREE.AdditiveBlending,
+				transparent: true,
+				sizeAttenuation: false
+    } );
+    let starField = new THREE.Points( starsGeometry, starsMaterial );
+    starField.scale.set(1,0.4,1);
+		scene.add( starField );
 }
 
 function maybeChangeScene(time){

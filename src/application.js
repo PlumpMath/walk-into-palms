@@ -79,8 +79,9 @@ function init(player){
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.style.margin =0;
     document.body.appendChild(renderer.domElement);
-
-    controls = new OrbitControls(camera, renderer.domElement);
+    if (debug) {
+        controls = new OrbitControls(camera, renderer.domElement);
+    }
 
     //scenography
     scenography = new Scenography(camera, spline, t, cameraHeight, cameraSpeed, palmMaterial);

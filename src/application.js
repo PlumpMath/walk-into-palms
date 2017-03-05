@@ -29,7 +29,7 @@ const radius_offset = 80;
 
 // objects
 const poolSize = 28;
-const percent_covered = 0.2; // it means that objects will be placed only in the
+const percent_covered = 0.18; // it means that objects will be placed only in the
 // 20% part of the curve in front of the camera. It has to be tuned with the fog
 const distance_from_path = 30;
 
@@ -59,7 +59,7 @@ addPlayButton();
 function prepareGeometry(){
     spline = createPath(radius, radius_offset);
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2( 0x000000, 0.008 );
+    scene.fog = new THREE.FogExp2( 0x000000, 0.01 );
     palmMaterial = getMaterial(scene.fog);
     pool = new Pool(poolSize, scene, spline, percent_covered, distance_from_path, palmMaterial);
     return pool;
@@ -73,7 +73,7 @@ function init(player){
     removeLoadingButton();
     player.start();
     let timer = setInterval(counter, 1000);
-    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 200);
+    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.3, 260);
 
     renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
